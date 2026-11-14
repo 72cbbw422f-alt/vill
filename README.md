@@ -61,7 +61,9 @@ Antikspanaren/
 - [x] Redigera enskilda prisreferenser
 - [ ] Specialiserad bildbaserad antikidentifiering utan betald molntjänst
 - [ ] Källbelagd automatisk värdering från kostnadsfria och tillåtna källor
-- [ ] Komplett Xcode-projekt och bygg-/testpipeline
+- [x] Grundläggande Xcode-projekt med delat schema och appens behörighetsbeskrivning
+- [ ] Xcode-build och simulator-/enhetstest
+- [ ] Appikon och slutlig visuell QA
 - [ ] IPA-export och signeringsflöde för sidladdning
 
 ## Integritet och behörigheter
@@ -78,6 +80,6 @@ Föremålsuppgifter och bildfiler sparas lokalt i appens dokumentkatalog. Ingen 
 6. Ingen funktion får införa en löpande kostnad för användaren eller utvecklaren.
 
 ## Byggstatus
-Detta repo innehåller SwiftUI-källkod. Ett komplett Xcode-projekt, signering och IPA-export återstår. Lokal textigenkänning och generell bildklassificering är implementerade i källkoden men har ännu inte verifierats genom en Xcode-build. Bildklassificeringen är generell och ska inte tolkas som en expertbedömning av antikviteter. Rekommenderad bas är iOS 17 eller senare.
+Detta repo innehåller SwiftUI-källkod och ett första native Xcode-projekt (`Antikspanaren.xcodeproj`) med delat byggschema och svensk kamerabehörighet. Projektet och källkoden har ännu inte verifierats genom en Xcode-build. Signering och IPA-export återstår. Bildklassificeringen är generell och ska inte tolkas som en expertbedömning av antikviteter. Rekommenderad bas är iOS 17 eller senare.
 
 För sidladdning behöver IPA-filen signeras. Gratis signering via Apple-ID har normalt en begränsad giltighetstid och måste förnyas regelbundet; det är en distributionsbegränsning, inte en kostnad från Antikspanaren.
