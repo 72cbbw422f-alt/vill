@@ -16,6 +16,7 @@ struct ScannerView: View {
     @State private var primaryClue: String?
     @State private var rawMarkingText = ""
     @State private var museumSearchText = ""
+    @State private var sourceSearchText = ""
     @State private var museumResults: [MetMuseumObject] = []
     @State private var isSearchingMuseums = false
     @State private var museumSearchError: String?
