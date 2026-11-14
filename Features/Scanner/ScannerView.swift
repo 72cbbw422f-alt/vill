@@ -12,6 +12,7 @@ struct ScannerView: View {
     @State private var isRecognizingText = false
     @State private var recognizedText = ""
     @State private var recognitionError: String?
+    @State private var imageClues: [String] = []
 
     var body: some View {
         NavigationStack {
@@ -85,6 +86,7 @@ struct ScannerView: View {
                                           let selectedImage = UIImage(data: data) else { return }
                                     image = selectedImage
                                     recognizedText = ""
+                                    imageClues = []
                                     recognitionError = nil
                                 }
                             }
@@ -97,7 +99,7 @@ struct ScannerView: View {
                                         } else {
                                             Image(systemName: "text.viewfinder")
                                         }
-                                        Text(isRecognizingText ? "Läser text …" : "Läs stämplar och text")
+                                        Text(isRecognizingText ? "Analyserar bilden …" : "Analysera bild lokalt")
                                     }
                                     .font(.system(size: 16, weight: .medium, design: .serif))
                                     .foregroundStyle(AntiqueTheme.parchment)
@@ -123,6 +125,27 @@ struct ScannerView: View {
                                         }
                                 }
                             }
+                        }
+
+                        if !imageClues.isEmpty {
+                            VStack(alignment: .leading, spacing: 9) {
+                                Text("VISUELLA LEDTRÅDAR")
+                                    .font(.system(size: 11, weight: .semibold, design: .serif))
+                                    .tracking(1.2)
+                                    .foregroundStyle(AntiqueTheme.brass)
+                                ForEach(Array(imageClues.enumerated()), id: \.offset) { _, clue in
+                                    Label(clue, systemImage: "sparkle.magnifyingglass")
+                                        .font(.system(size: 14, design: .serif))
+                                        .foregroundStyle(AntiqueTheme.ink)
+                                }
+                                Text("Detta är breda bildkategorier från en generell modell. De fastställer inte föremålets ålder, äkthet, material eller tillverkare.")
+                                    .font(.system(size: 12, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.mutedInk)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(15)
+                            .background(AntiqueTheme.parchment.opacity(0.8))
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
                         }
 
                         if !recognizedText.isEmpty {
@@ -183,6 +206,7 @@ struct ScannerView: View {
         isRecognizingText = true
         recognitionError = nil
         recognizedText = ""
+        imageClues = []
 
         DispatchQueue.global(qos: .userInitiated).async {
             let request = VNRecognizeTextRequest()
@@ -190,8 +214,11 @@ struct ScannerView: View {
             request.usesLanguageCorrection = true
             request.recognitionLanguages = ["sv-SE", "en-US"]
 
+            let classification = VNClassifyImageRequest()
+            classification.imageCropAndScaleOption = .centerCrop
+
             do {
-                try VNImageRequestHandler(cgImage: cgImage).perform([request])
+                try VNImageRequestHandler(cgImage: cgImage).perform([request, classification])
                 let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let result = lines.joined(separator: "\n")
 
@@ -209,6 +236,21 @@ struct ScannerView: View {
                 }
             }
         }
+    }
+
+    private static func localizedClue(_ identifier: String) -> String {
+        let key = identifier.lowercased()
+        let translations: [String: String] = [
+            "vase": "Vas", "pot": "Kruk", "bowl": "Skål", "plate": "Tallrik",
+            "cup": "Kopp", "mug": "Mugg", "teapot": "Tekanna", "bottle": "Flaska",
+            "glass": "Glas", "clock": "Klocka", "watch": "Armbandsur", "lamp": "Lampa",
+            "chair": "Stol", "table": "Bord", "cabinet": "Skåp", "painting": "Målning",
+            "picture": "Bild", "book": "Bok", "sculpture": "Skulptur", "figurine": "Figurin",
+            "jewelry": "Smycke", "ring": "Ring", "brooch": "Brosch", "coin": "Mynt",
+            "furniture": "Möbel", "wood": "Träföremål", "metal": "Metallföremål",
+            "ceramic": "Keramik", "porcelain": "Porslin"
+        ]
+        return translations[key] ?? identifier.replacingOccurrences(of: "_", with: " ").capitalized
     }
 }
 
