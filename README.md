@@ -41,11 +41,13 @@ Antikspanaren/
 - [x] Detaljvy för varje sparat föremål
 - [x] Redigera grunduppgifter, material, period, skick, märkningar och proveniens
 - [x] Flera bilder per föremål
+- [x] Ta bort enskilda extrabilder utan att radera omslagsbilden
 - [x] Manuellt prisintervall och anteckningar om värderingsunderlag
 - [x] Prisreferenser med källa och åtskillnad mellan slutpris, begärt pris, auktionsvärdering och expertbedömning
 - [x] Radera föremål och dess lokala bilder
 - [x] Bakåtkompatibel avkodning av tidigare sparade föremål
-- [ ] Redigera och radera enskilda prisreferenser
+- [x] Radera enskilda prisreferenser
+- [ ] Redigera enskilda prisreferenser
 - [ ] Bildanalys och AI-identifiering
 - [ ] Källbelagd automatisk värdering
 - [ ] Xcode-projekt och bygg-/testpipeline
