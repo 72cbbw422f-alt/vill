@@ -212,11 +212,24 @@ struct AntiqueDetailView: View {
                         Text(evidence.sourceName)
                             .font(.system(size: 14, design: .serif))
                             .foregroundStyle(AntiqueTheme.ink)
-                        if !evidence.url.isEmpty {
-                            Text(evidence.url)
+                        if let date = evidence.date {
+                            Text(date.formatted(date: .long, time: .omitted))
                                 .font(.system(size: 11, design: .serif))
                                 .foregroundStyle(AntiqueTheme.mutedInk)
-                                .textSelection(.enabled)
+                        }
+                        if !evidence.url.isEmpty {
+                            if let url = URL(string: evidence.url), ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
+                                Link(destination: url) {
+                                    Label("Öppna källan", systemImage: "arrow.up.right.square")
+                                        .font(.system(size: 11, design: .serif))
+                                }
+                                .tint(AntiqueTheme.forest)
+                            } else {
+                                Text(evidence.url)
+                                    .font(.system(size: 11, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.mutedInk)
+                                    .textSelection(.enabled)
+                            }
                         }
                         if !evidence.notes.isEmpty {
                             Text(evidence.notes)
@@ -225,6 +238,14 @@ struct AntiqueDetailView: View {
                         }
                     }
                     .padding(.vertical, 8)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            item.evidence.removeAll { $0.id == evidence.id }
+                            save()
+                        } label: {
+                            Label("Ta bort prisreferens", systemImage: "trash")
+                        }
+                    }
                     BrassDivider()
                 }
             }
@@ -303,6 +324,7 @@ private struct AddEvidenceSheet: View {
     @State private var kind: SavedPriceEvidence.EvidenceKind = .realizedSale
     @State private var url = ""
     @State private var notes = ""
+    @State private var evidenceDate = Date()
 
     var body: some View {
         NavigationStack {
@@ -329,6 +351,10 @@ private struct AddEvidenceSheet: View {
                             .tint(AntiqueTheme.forest)
                         }
 
+                        DatePicker("Datum för prisuppgiften", selection: $evidenceDate, displayedComponents: .date)
+                            .font(.system(size: 13, design: .serif))
+                            .tint(AntiqueTheme.forest)
+
                         field("Länk till källan (om finns)", text: $url)
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Anteckning")
@@ -352,8 +378,10 @@ private struct AddEvidenceSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Lägg till") {
-                        onAdd(SavedPriceEvidence(sourceName: sourceName, amount: amount, kind: kind,
-                                                 date: nil, url: url, notes: notes))
+                        onAdd(SavedPriceEvidence(sourceName: sourceName.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 amount: amount.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 kind: kind, date: evidenceDate, url: url.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)))
                         dismiss()
                     }
                     .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || amount.isEmpty)
