@@ -239,6 +239,81 @@ struct ScannerView: View {
         }
     }
 
+
+    private var sourceResearchPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("AUKTIONSHUS & MARKNADSRESEARCH")
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .tracking(1.2)
+                .foregroundStyle(AntiqueTheme.brass)
+            Text("Sök efter liknande föremål hos de källor Villemo använder. Sökningarna öppnas i webbläsaren och hämtar inte automatiskt auktionsresultat.")
+                .font(.system(size: 13, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+            TextField("Exempelvis Gustavsberg Argenta vas", text: $sourceSearchText)
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .padding(12)
+                .background(AntiqueTheme.paper)
+                .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
+            VStack(spacing: 8) {
+                sourceSearchLink("Auctionet", domain: "auctionet.com", icon: "hammer")
+                sourceSearchLink("Catawiki", domain: "catawiki.com", icon: "globe.europe.africa")
+                sourceSearchLink("Barnebys", domain: "barnebys.com", icon: "magnifyingglass")
+                sourceSearchLink("Bukowskis", domain: "bukowskis.com", icon: "building.columns")
+                sourceSearchLink("Stockholms Auktionsverk", domain: "stockholmsauktionsverk.com", icon: "building.2")
+                if let imageSearchURL = sourceSearchURL(domain: nil, images: true) {
+                    Link(destination: imageSearchURL) {
+                        Label("Bildsök – Google Bilder", systemImage: "photo.on.rectangle.angled")
+                            .font(.system(size: 14, weight: .medium, design: .serif))
+                            .foregroundStyle(AntiqueTheme.forest)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(AntiqueTheme.paper)
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55)))
+                    }
+                }
+            }
+            Text("Tips: sök på tillverkare, modell, signatur eller material. Jämför avslutade försäljningar separat från utropspriser och aktiva annonser. Samma objekt kan förekomma på flera plattformar.")
+                .font(.system(size: 11, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(AntiqueTheme.parchment)
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.65), lineWidth: 1))
+    }
+
+    @ViewBuilder
+    private func sourceSearchLink(_ title: String, domain: String, icon: String) -> some View {
+        if let url = sourceSearchURL(domain: domain) {
+            Link(destination: url) {
+                HStack {
+                    Label(title, systemImage: icon)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundStyle(AntiqueTheme.forest)
+                .padding(12)
+                .background(AntiqueTheme.paper)
+                .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55)))
+            }
+        }
+    }
+
+    private func sourceSearchURL(domain: String?, images: Bool = false) -> URL? {
+        let term = sourceSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !term.isEmpty else { return URL(string: "https://www.google.com") }
+        var query = term
+        if let domain { query += " site:" + domain }
+        var components = URLComponents(string: "https://www.google.com/search")
+        var items = [URLQueryItem(name: "q", value: query)]
+        if images { items.append(URLQueryItem(name: "tbm", value: "isch")) }
+        components?.queryItems = items
+        return components?.url
+    }
+
     private var museumSearchPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("JÄMFÖR MED DOKUMENTERADE FÖREMÅL")
