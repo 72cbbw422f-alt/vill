@@ -221,6 +221,10 @@ struct ScannerView: View {
                 try VNImageRequestHandler(cgImage: cgImage).perform([request, classification])
                 let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let result = lines.joined(separator: "\n")
+                let clues = (classification.results ?? [])
+                    .filter { $0.confidence >= 0.12 }
+                    .prefix(5)
+                    .map { Self.localizedClue($0.identifier) }
 
                 DispatchQueue.main.async {
                     recognizedText = result
