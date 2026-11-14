@@ -505,7 +505,7 @@ private enum AntiqueCatalogPDF {
     static func create(item: SavedAntique, coverImage: UIImage?) throws -> URL {
         let page = CGRect(x: 0, y: 0, width: 612, height: 792)
         let renderer = UIGraphicsPDFRenderer(bounds: page)
-        let filename = "Antikspanaren-\\(item.title.replacingOccurrences(of: "/", with: "-")).pdf"
+        let filename = "Antikspanaren-\(item.title.replacingOccurrences(of: "/", with: "-")).pdf"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
         let ink = UIColor(red: 0.12, green: 0.16, blue: 0.13, alpha: 1)
         let green = UIColor(red: 0.055, green: 0.145, blue: 0.105, alpha: 1)
@@ -526,11 +526,11 @@ private enum AntiqueCatalogPDF {
         ].filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
         let evidenceText = item.evidence.map { evidence in
-            "\\(evidence.kind.title): \\(evidence.amount) kr · \\(evidence.sourceName)\\(evidence.date.map { " · " + $0.formatted(date: .numeric, time: .omitted) } ?? "")\\n\\(evidence.notes)"
-        }.joined(separator: "\\n\\n")
+            "\(evidence.kind.title): \(evidence.amount) kr · \(evidence.sourceName)\(evidence.date.map { " · " + $0.formatted(date: .numeric, time: .omitted) } ?? "")\n\(evidence.notes)"
+        }.joined(separator: "\n\n")
 
-        let text = body.map { "\\($0.0)\\n\\($0.1)" }.joined(separator: "\\n\\n")
-            + (evidenceText.isEmpty ? "" : "\\n\\nPRISREFERENSER OCH KÄLLOR\\n\\(evidenceText)")
+        let text = body.map { "\($0.0)\n\($0.1)" }.joined(separator: "\n\n")
+            + (evidenceText.isEmpty ? "" : "\n\nPRISREFERENSER OCH KÄLLOR\n\(evidenceText)")
         let data = renderer.pdfData { context in
             context.beginPage()
             paper.setFill()
@@ -573,7 +573,7 @@ private enum AntiqueCatalogPDF {
             let available = CGRect(x: 46, y: y, width: 520, height: 792 - y - 55)
             attributed.draw(in: available)
 
-            let footer = "Skapad \\(Date.now.formatted(date: .long, time: .omitted))  ·  Egna uppgifter och dokumenterade prisreferenser"
+            let footer = "Skapad \(Date.now.formatted(date: .long, time: .omitted))  ·  Egna uppgifter och dokumenterade prisreferenser"
             (footer as NSString).draw(at: CGPoint(x: 46, y: 755), withAttributes: [
                 .font: UIFont(name: "Georgia", size: 8) ?? UIFont.systemFont(ofSize: 8),
                 .foregroundColor: UIColor.darkGray
