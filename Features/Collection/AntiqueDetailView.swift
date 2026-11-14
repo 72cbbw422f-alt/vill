@@ -587,14 +587,14 @@ private enum AntiqueCatalogPDF {
     static func create(item: SavedAntique, coverImage: UIImage?) throws -> URL {
         let page = CGRect(x: 0, y: 0, width: 612, height: 792)
         let renderer = UIGraphicsPDFRenderer(bounds: page)
-        let filename = "Antikspanaren-\(item.title.replacingOccurrences(of: "/", with: "-")).pdf"
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        let safeTitle = item.title.replacingOccurrences(of: "/", with: "-")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Antikspanaren-\(safeTitle).pdf")
         let ink = UIColor(red: 0.12, green: 0.16, blue: 0.13, alpha: 1)
         let green = UIColor(red: 0.055, green: 0.145, blue: 0.105, alpha: 1)
         let brass = UIColor(red: 0.76, green: 0.59, blue: 0.30, alpha: 1)
         let paper = UIColor(red: 0.96, green: 0.93, blue: 0.86, alpha: 1)
 
-        let body = [
+        var sections: [(String, String)] = [
             ("TILLVERKARE / KONSTNÄR", item.maker),
             ("TIDSPERIOD", item.estimatedPeriod),
             ("MATERIAL", item.materials),
@@ -605,62 +605,167 @@ private enum AntiqueCatalogPDF {
             ("EGEN VÄRDEUPPSKATTNING", [item.valuationLow, item.valuationHigh].filter { !$0.isEmpty }.joined(separator: " – ") + ((item.valuationLow.isEmpty && item.valuationHigh.isEmpty) ? "" : " kr")),
             ("KOMMENTAR TILL UPPSKATTNINGEN", item.valuationNotes),
             ("ANTECKNINGAR", item.notes)
-        ].filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        ]
+        for evidence in item.evidence {
+            let date = evidence.date.map { $0.formatted(date: .numeric, time: .omitted) } ?? "Datum saknas"
+            let details = [evidence.sourceName, evidence.amount + " kr", date, evidence.url, evidence.notes]
+                .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                .joined(separator: "\n")
+            sections.append((evidence.kind.title.uppercased(), details))
+        }
+        sections = sections.filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
-        let evidenceText = item.evidence.map { evidence in
-            "\(evidence.kind.title): \(evidence.amount) kr · \(evidence.sourceName)\(evidence.date.map { " · " + $0.formatted(date: .numeric, time: .omitted) } ?? "")\n\(evidence.notes)"
-        }.joined(separator: "\n\n")
+        let labelAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont(name: "Georgia-Bold", size: 9) ?? UIFont.boldSystemFont(ofSize: 9),
+            .foregroundColor: green,
+            .kern: 0.7
+        ]
+        let bodyParagraph = NSMutableParagraphStyle()
+        bodyParagraph.lineSpacing = 3
+        let bodyAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont(name: "Georgia", size: 10) ?? UIFont.systemFont(ofSize: 10),
+            .foregroundColor: ink,
+            .paragraphStyle: bodyParagraph
+        ]
 
-        let text = body.map { "\($0.0)\n\($0.1)" }.joined(separator: "\n\n")
-            + (evidenceText.isEmpty ? "" : "\n\nPRISREFERENSER OCH KÄLLOR\n\(evidenceText)")
         let data = renderer.pdfData { context in
-            context.beginPage()
-            paper.setFill()
-            context.cgContext.fill(page)
-            brass.setStroke()
-            context.cgContext.setLineWidth(1)
-            context.cgContext.stroke(page.insetBy(dx: 28, dy: 28))
-
-            let masthead = "ANTIKSPANAREN  ·  FÖREMÅLSKATALOG"
-            (masthead as NSString).draw(at: CGPoint(x: 46, y: 44), withAttributes: [
-                .font: UIFont(name: "Georgia-Bold", size: 9) ?? UIFont.boldSystemFont(ofSize: 9),
-                .foregroundColor: brass,
-                .kern: 1.5
-            ])
-
+            var pageNumber = 0
             var y: CGFloat = 70
-            if let coverImage {
-                let imageRect = CGRect(x: 46, y: y, width: 150, height: 145)
-                let ratio = min(imageRect.width / coverImage.size.width, imageRect.height / coverImage.size.height)
-                let size = CGSize(width: coverImage.size.width * ratio, height: coverImage.size.height * ratio)
-                coverImage.draw(in: CGRect(x: imageRect.midX - size.width / 2, y: imageRect.midY - size.height / 2, width: size.width, height: size.height))
-                y += 160
+            let bottomLimit: CGFloat = 720
+
+            func beginPage(first: Bool) {
+                context.beginPage()
+                pageNumber += 1
+                paper.setFill()
+                context.cgContext.fill(page)
+                brass.setStroke()
+                context.cgContext.setLineWidth(1)
+                context.cgContext.stroke(page.insetBy(dx: 28, dy: 28))
+
+                let masthead = "ANTIKSPANAREN  ·  FÖREMÅLSKATALOG"
+                (masthead as NSString).draw(at: CGPoint(x: 46, y: 44), withAttributes: [
+                    .font: UIFont(name: "Georgia-Bold", size: 9) ?? UIFont.boldSystemFont(ofSize: 9),
+                    .foregroundColor: brass,
+                    .kern: 1.5
+                ])
+
+                if first {
+                    var titleY: CGFloat = 70
+                    if let coverImage {
+                        let imageRect = CGRect(x: 46, y: titleY, width: 135, height: 125)
+                        let ratio = min(imageRect.width / max(coverImage.size.width, 1), imageRect.height / max(coverImage.size.height, 1))
+                        let size = CGSize(width: coverImage.size.width * ratio, height: coverImage.size.height * ratio)
+                        coverImage.draw(in: CGRect(x: imageRect.midX - size.width / 2, y: imageRect.midY - size.height / 2, width: size.width, height: size.height))
+                        titleY += 137
+                    }
+                    (item.title as NSString).draw(in: CGRect(x: 46, y: titleY, width: 520, height: 48), withAttributes: [
+                        .font: UIFont(name: "Georgia", size: 24) ?? UIFont.systemFont(ofSize: 24),
+                        .foregroundColor: green
+                    ])
+                    y = titleY + 58
+                } else {
+                    (item.title as NSString).draw(in: CGRect(x: 46, y: 68, width: 520, height: 25), withAttributes: [
+                        .font: UIFont(name: "Georgia", size: 15) ?? UIFont.systemFont(ofSize: 15),
+                        .foregroundColor: green
+                    ])
+                    y = 108
+                }
+
+                let footer = "Skapad \(Date.now.formatted(date: .long, time: .omitted))  ·  Sida \(pageNumber)"
+                (footer as NSString).draw(at: CGPoint(x: 46, y: 755), withAttributes: [
+                    .font: UIFont(name: "Georgia", size: 8) ?? UIFont.systemFont(ofSize: 8),
+                    .foregroundColor: UIColor.darkGray
+                ])
             }
 
-            let titleAttributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont(name: "Georgia", size: 25) ?? UIFont.systemFont(ofSize: 25),
-                .foregroundColor: green
-            ]
-            (item.title as NSString).draw(in: CGRect(x: 46, y: y, width: 520, height: 38), withAttributes: titleAttributes)
-            y += 48
+            beginPage(first: true)
 
-            let paragraph = NSMutableParagraphStyle()
-            paragraph.lineSpacing = 3
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont(name: "Georgia", size: 10) ?? UIFont.systemFont(ofSize: 10),
-                .foregroundColor: ink,
-                .paragraphStyle: paragraph
-            ]
-            let attributed = NSAttributedString(string: text, attributes: attributes)
-            let available = CGRect(x: 46, y: y, width: 520, height: 792 - y - 55)
-            attributed.draw(in: available)
+            for (heading, value) in sections {
+                let labelSize = (heading as NSString).boundingRect(
+                    with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                    options: [.usesLineFragmentOrigin, .usesFontLeading],
+                    attributes: labelAttributes,
+                    context: nil
+                ).height
+                let valueSize = (value as NSString).boundingRect(
+                    with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                    options: [.usesLineFragmentOrigin, .usesFontLeading],
+                    attributes: bodyAttributes,
+                    context: nil
+                ).height
+                let sectionHeight = labelSize + 4 + valueSize + 13
 
-            let footer = "Skapad \(Date.now.formatted(date: .long, time: .omitted))  ·  Egna uppgifter och dokumenterade prisreferenser"
-            (footer as NSString).draw(at: CGPoint(x: 46, y: 755), withAttributes: [
-                .font: UIFont(name: "Georgia", size: 8) ?? UIFont.systemFont(ofSize: 8),
-                .foregroundColor: UIColor.darkGray
-            ])
+                if y + min(sectionHeight, 90) > bottomLimit {
+                    beginPage(first: false)
+                }
+
+                (heading as NSString).draw(in: CGRect(x: 46, y: y, width: 520, height: labelSize + 2), withAttributes: labelAttributes)
+                y += labelSize + 4
+
+                var remaining = value as NSString
+                while remaining.length > 0 {
+                    let availableHeight = bottomLimit - y
+                    if availableHeight < 28 {
+                        beginPage(first: false)
+                        continue
+                    }
+
+                    let fullSize = remaining.boundingRect(
+                        with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                        options: [.usesLineFragmentOrigin, .usesFontLeading],
+                        attributes: bodyAttributes,
+                        context: nil
+                    )
+                    if fullSize.height <= availableHeight {
+                        remaining.draw(in: CGRect(x: 46, y: y, width: 520, height: availableHeight), withAttributes: bodyAttributes)
+                        y += fullSize.height + 13
+                        remaining = ""
+                    } else {
+                        var low = 1
+                        var high = remaining.length
+                        var best = 0
+                        while low <= high {
+                            let mid = (low + high) / 2
+                            let candidate = remaining.substring(to: mid) as NSString
+                            let size = candidate.boundingRect(
+                                with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                                attributes: bodyAttributes,
+                                context: nil
+                            )
+                            if size.height <= availableHeight - 8 {
+                                best = mid
+                                low = mid + 1
+                            } else {
+                                high = mid - 1
+                            }
+                        }
+                        if best == 0 {
+                            beginPage(first: false)
+                            continue
+                        }
+                        if best < remaining.length {
+                            let split = (remaining.substring(to: best) as NSString).rangeOfCharacter(from: .whitespacesAndNewlines, options: .backwards)
+                            if split.location != NSNotFound && split.location > best / 2 {
+                                best = split.location + split.length
+                            }
+                        }
+                        let chunk = remaining.substring(to: best) as NSString
+                        let chunkSize = chunk.boundingRect(
+                            with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                            options: [.usesLineFragmentOrigin, .usesFontLeading],
+                            attributes: bodyAttributes,
+                            context: nil
+                        )
+                        chunk.draw(in: CGRect(x: 46, y: y, width: 520, height: availableHeight), withAttributes: bodyAttributes)
+                        y += chunkSize.height + 5
+                        remaining = remaining.substring(from: best) as NSString
+                        beginPage(first: false)
+                    }
+                }
+            }
         }
+
         try data.write(to: url, options: .atomic)
         return url
     }
