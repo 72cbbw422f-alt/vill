@@ -109,7 +109,9 @@ final class CollectionStore: ObservableObject {
 
     init() { load() }
 
-    func add(title: String, maker: String, notes: String, purchasePrice: String, image: UIImage) throws {
+    func add(title: String, maker: String, notes: String, purchasePrice: String, image: UIImage,
+             estimatedPeriod: String = "", materials: String = "", markings: String = "",
+             conditionNotes: String = "", provenance: String = "") throws {
         guard let imageData = image.jpegData(compressionQuality: 0.88) else { throw StoreError.imageEncodingFailed }
         let folder = try imagesFolder()
         let filename = UUID().uuidString + ".jpg"
@@ -118,7 +120,9 @@ final class CollectionStore: ObservableObject {
 
         let item = SavedAntique(
             title: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Oidentifierat föremål" : title,
-            maker: maker, notes: notes, purchasePrice: purchasePrice, imageFileName: filename
+            maker: maker, notes: notes, purchasePrice: purchasePrice, imageFileName: filename,
+            estimatedPeriod: estimatedPeriod, materials: materials, markings: markings,
+            provenance: provenance, conditionNotes: conditionNotes
         )
         items.insert(item, at: 0)
         do { try persist() }
