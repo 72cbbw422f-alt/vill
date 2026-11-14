@@ -8,6 +8,7 @@ struct AntiqueDetailView: View {
     @State private var item: SavedAntique
     @State private var selectedImages: [PhotosPickerItem] = []
     @State private var showingEvidenceForm = false
+    @State private var evidenceToEdit: SavedPriceEvidence?
     @State private var showingDeleteConfirmation = false
     @State private var message: String?
 
@@ -107,6 +108,16 @@ struct AntiqueDetailView: View {
             AddEvidenceSheet { evidence in
                 item.evidence.insert(evidence, at: 0)
                 save()
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $evidenceToEdit) { evidence in
+            AddEvidenceSheet(evidence: evidence) { updated in
+                if let index = item.evidence.firstIndex(where: { $0.id == updated.id }) {
+                    item.evidence[index] = updated
+                    save()
+                }
             }
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
@@ -261,7 +272,15 @@ struct AntiqueDetailView: View {
                         }
                     }
                     .padding(.vertical, 8)
+                    .onTapGesture {
+                        evidenceToEdit = evidence
+                    }
                     .contextMenu {
+                        Button {
+                            evidenceToEdit = evidence
+                        } label: {
+                            Label("Redigera prisreferens", systemImage: "pencil")
+                        }
                         Button(role: .destructive) {
                             item.evidence.removeAll { $0.id == evidence.id }
                             save()
@@ -354,12 +373,25 @@ private struct AddEvidenceSheet: View {
     @Environment(\.dismiss) private var dismiss
     let onAdd: (SavedPriceEvidence) -> Void
 
-    @State private var sourceName = ""
-    @State private var amount = ""
-    @State private var kind: SavedPriceEvidence.EvidenceKind = .realizedSale
-    @State private var url = ""
-    @State private var notes = ""
-    @State private var evidenceDate = Date()
+    @State private var sourceName: String
+    @State private var amount: String
+    @State private var kind: SavedPriceEvidence.EvidenceKind
+    @State private var url: String
+    @State private var notes: String
+    @State private var evidenceDate: Date
+
+    init(evidence: SavedPriceEvidence? = nil, onAdd: @escaping (SavedPriceEvidence) -> Void) {
+        self.onAdd = onAdd
+        _sourceName = State(initialValue: evidence?.sourceName ?? "")
+        _amount = State(initialValue: evidence?.amount ?? "")
+        _kind = State(initialValue: evidence?.kind ?? .realizedSale)
+        _url = State(initialValue: evidence?.url ?? "")
+        _notes = State(initialValue: evidence?.notes ?? "")
+        _evidenceDate = State(initialValue: evidence?.date ?? Date())
+        _editingID = State(initialValue: evidence?.id)
+    }
+
+    @State private var editingID: UUID?
 
     var body: some View {
         NavigationStack {
@@ -367,7 +399,7 @@ private struct AddEvidenceSheet: View {
                 PaperBackground()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("Lägg till prisreferens")
+                        Text(editingID == nil ? "Lägg till prisreferens" : "Redigera prisreferens")
                             .font(AntiqueTheme.title(26))
                             .foregroundStyle(AntiqueTheme.forest)
                         field("Auktionshus / källa", text: $sourceName)
@@ -412,8 +444,9 @@ private struct AddEvidenceSheet: View {
                     Button("Avbryt") { dismiss() }.foregroundStyle(AntiqueTheme.forest)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Lägg till") {
-                        onAdd(SavedPriceEvidence(sourceName: sourceName.trimmingCharacters(in: .whitespacesAndNewlines),
+                    Button(editingID == nil ? "Lägg till" : "Spara") {
+                        onAdd(SavedPriceEvidence(id: editingID ?? UUID(),
+                                                 sourceName: sourceName.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  amount: amount.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  kind: kind, date: evidenceDate, url: url.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)))
