@@ -348,7 +348,7 @@ struct ScannerView: View {
 
             var found: [MetMuseumObject] = []
             for id in ids {
-                guard let url = URL(string: "https://collectionapi.metmuseum.org/public/collection/v1/objects/\\(id)") else { continue }
+                guard let url = URL(string: "https://collectionapi.metmuseum.org/public/collection/v1/objects/\(id)") else { continue }
                 do {
                     let (data, _) = try await URLSession.shared.data(from: url)
                     let object = try JSONDecoder().decode(MetMuseumObject.self, from: data)
