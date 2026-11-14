@@ -14,6 +14,7 @@ struct ScannerView: View {
     @State private var recognitionError: String?
     @State private var imageClues: [String] = []
     @State private var primaryClue: String?
+    @State private var rawMarkingText = ""
 
     var body: some View {
         NavigationStack {
@@ -104,6 +105,7 @@ struct ScannerView: View {
                                     recognizedText = ""
                                     imageClues = []
                                     primaryClue = nil
+                                    rawMarkingText = ""
                                     recognitionError = nil
                                 }
                             }
@@ -212,6 +214,7 @@ struct ScannerView: View {
                 recognizedText = ""
                 imageClues = []
                 primaryClue = nil
+                rawMarkingText = ""
                 recognitionError = nil
             }
             .sheet(isPresented: $showingCamera) {
@@ -247,6 +250,22 @@ struct ScannerView: View {
             reportRow("Material och tillverkare", "Kan inte fastställas säkert från den här generella bildanalysen.")
             reportRow("Ålder och ursprung", "Kräver märkningar, konstruktion, materialdetaljer och jämförelser med dokumenterade föremål.")
             reportRow("Marknadsvärde", "Ingen värdering görs utan verifierbara jämförelseförsäljningar.")
+
+            if !rawMarkingText.isEmpty && rawMarkingText != recognizedText {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("RÅ AVLÄSNING – MÄRKNINGAR")
+                        .font(.system(size: 10, weight: .semibold, design: .serif))
+                        .tracking(1)
+                        .foregroundStyle(AntiqueTheme.brass)
+                    Text(rawMarkingText)
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(AntiqueTheme.ink)
+                        .textSelection(.enabled)
+                    Text("Denna avläsning görs utan språklig rättning för att minska risken att bokstäver och sifferkoder ändras. Jämför alltid med bilden.")
+                        .font(.system(size: 11, design: .serif))
+                        .foregroundStyle(AntiqueTheme.mutedInk)
+                }
+            }
 
             if !recognizedText.isEmpty {
                 VStack(alignment: .leading, spacing: 5) {
@@ -325,19 +344,30 @@ struct ScannerView: View {
         recognizedText = ""
         imageClues = []
         primaryClue = nil
+        rawMarkingText = ""
 
         DispatchQueue.global(qos: .userInitiated).async {
-            let request = VNRecognizeTextRequest()
-            request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = true
-            request.recognitionLanguages = ["sv-SE", "en-US"]
+            let readingRequest = VNRecognizeTextRequest()
+            readingRequest.recognitionLevel = .accurate
+            readingRequest.usesLanguageCorrection = true
+            readingRequest.recognitionLanguages = ["sv-SE", "en-US"]
+
+            // A second pass without language correction can preserve stamp codes,
+            // initials and serial numbers that autocorrection might otherwise alter.
+            let markingRequest = VNRecognizeTextRequest()
+            markingRequest.recognitionLevel = .accurate
+            markingRequest.usesLanguageCorrection = false
+            markingRequest.recognitionLanguages = ["sv-SE", "en-US"]
 
             let classification = VNClassifyImageRequest()
 
             do {
-                try VNImageRequestHandler(cgImage: cgImage).perform([request, classification])
-                let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+                let handler = VNImageRequestHandler(cgImage: cgImage)
+                try handler.perform([readingRequest, markingRequest, classification])
+                let lines = (readingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let result = lines.joined(separator: "\n")
+                let rawLines = (markingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+                let rawResult = rawLines.joined(separator: "\n")
                 let rankedResults = (classification.results ?? [])
                     .filter { $0.confidence >= 0.12 }
                     .prefix(5)
@@ -348,7 +378,8 @@ struct ScannerView: View {
                     recognizedText = result
                     imageClues = Array(clues)
                     primaryClue = leadingClue
-                    if result.isEmpty && clues.isEmpty {
+                    rawMarkingText = rawResult
+                    if result.isEmpty && rawResult.isEmpty && clues.isEmpty {
                         recognitionError = "Ingen tydlig text eller bildkategori hittades. Prova en ny bild med bättre ljus."
                     }
                     isRecognizingText = false
