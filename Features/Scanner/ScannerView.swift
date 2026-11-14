@@ -20,6 +20,13 @@ struct ScannerView: View {
                 PaperBackground()
                 ScrollView {
                     VStack(spacing: 22) {
+                        Text("KURIOSA  •  KONST  •  ANTIKVITETER")
+                            .font(.system(size: 10, weight: .semibold, design: .serif))
+                            .tracking(1.8)
+                            .foregroundStyle(AntiqueTheme.brass)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 14)
+
                         VStack(spacing: 8) {
                             Text("Föremålets berättelse")
                                 .font(AntiqueTheme.title(30))
@@ -187,7 +194,10 @@ struct ScannerView: View {
                             .multilineTextAlignment(.center)
                             .lineSpacing(3)
                     }
-                    .padding(22)
+                    .padding(.horizontal, 22)
+                    .padding(.top, 8)
+                    .padding(.bottom, 28)
+                    .safeAreaPadding(.bottom, 82)
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
