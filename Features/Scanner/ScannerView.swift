@@ -55,16 +55,24 @@ struct ScannerView: View {
                         .frame(height: 300)
 
                         VStack(spacing: 12) {
-                            Button {
-                                showingCamera = true
-                            } label: {
-                                Label("Ta ett foto", systemImage: "camera")
-                                    .font(.system(size: 16, weight: .medium, design: .serif))
-                                    .foregroundStyle(AntiqueTheme.parchment)
+                            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                                Button {
+                                    showingCamera = true
+                                } label: {
+                                    Label("Ta ett foto", systemImage: "camera")
+                                        .font(.system(size: 16, weight: .medium, design: .serif))
+                                        .foregroundStyle(AntiqueTheme.parchment)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(16)
+                                        .background(AntiqueTheme.forest)
+                                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                                }
+                            } else {
+                                Label("Kamera är inte tillgänglig på den här enheten", systemImage: "camera.slash")
+                                    .font(.system(size: 13, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.mutedInk)
                                     .frame(maxWidth: .infinity)
-                                    .padding(16)
-                                    .background(AntiqueTheme.forest)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                    .padding(12)
                             }
 
                             PhotosPicker(selection: $selectedPhoto, matching: .images) {
@@ -166,7 +174,7 @@ struct ScannerView: View {
                             .padding(15)
                             .background(AntiqueTheme.parchment.opacity(0.8))
                             .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
-                        } else if let recognitionError {
+                        } else if imageClues.isEmpty, let recognitionError {
                             Text(recognitionError)
                                 .font(.system(size: 13, design: .serif))
                                 .foregroundStyle(.red)
@@ -183,6 +191,12 @@ struct ScannerView: View {
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
+            .onChange(of: image) { _, newImage in
+                guard newImage != nil else { return }
+                recognizedText = ""
+                imageClues = []
+                recognitionError = nil
+            }
             .sheet(isPresented: $showingCamera) {
                 CameraPicker(image: $image).ignoresSafeArea()
             }
