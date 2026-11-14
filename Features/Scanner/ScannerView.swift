@@ -133,8 +133,8 @@ struct ScannerView: View {
                                     .font(.system(size: 11, weight: .semibold, design: .serif))
                                     .tracking(1.2)
                                     .foregroundStyle(AntiqueTheme.brass)
-                                ForEach(Array(imageClues.enumerated()), id: \.offset) { _, clue in
-                                    Label(clue, systemImage: "sparkle.magnifyingglass")
+                                ForEach(Array(imageClues.enumerated()), id: \.offset) { entry in
+                                    Label(entry.element, systemImage: "sparkle.magnifyingglass")
                                         .font(.system(size: 14, design: .serif))
                                         .foregroundStyle(AntiqueTheme.ink)
                                 }
