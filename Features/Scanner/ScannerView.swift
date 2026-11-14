@@ -417,6 +417,11 @@ private struct SaveAntiqueSheet: View {
 
     @State private var title = ""
     @State private var maker = ""
+    @State private var estimatedPeriod = ""
+    @State private var materials = ""
+    @State private var markings = ""
+    @State private var conditionNotes = ""
+    @State private var provenance = ""
     @State private var purchasePrice = ""
     @State private var notes = ""
     @State private var errorMessage: String?
@@ -432,8 +437,17 @@ private struct SaveAntiqueSheet: View {
                             .foregroundStyle(AntiqueTheme.forest)
                         field("Föremålets namn", placeholder: "Exempelvis vas, kanna eller tavla", text: $title)
                         field("Tillverkare eller konstnär", placeholder: "Om du känner till den", text: $maker)
+                        field("Ungefärlig tidsperiod", placeholder: "Exempelvis omkring 1920", text: $estimatedPeriod)
+                        field("Material", placeholder: "Exempelvis porslin, mässing, ek …", text: $materials)
+                        field("Stämplar och signaturer", placeholder: "Skriv av exakt eller beskriv märkningen", text: $markings)
+                        field("Skick och mått", placeholder: "Slitage, skador, lagningar, höjd/bredd …", text: $conditionNotes)
+                        field("Ursprung och proveniens", placeholder: "Tidigare ägare, inköpsplats eller historia", text: $provenance)
                         field("Inköpspris i kronor", placeholder: "Lämna tomt om okänt", text: $purchasePrice)
                             .keyboardType(.decimalPad)
+
+                        Text("Fyll bara i det du känner till. Okända uppgifter kan lämnas tomma – det är bättre än att gissa.")
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundStyle(AntiqueTheme.mutedInk)
 
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Egna anteckningar")
@@ -497,7 +511,7 @@ private struct SaveAntiqueSheet: View {
         }
 
         do {
-            try collection.add(title: title, maker: maker, notes: combinedNotes, purchasePrice: purchasePrice, image: image)
+            try collection.add(title: title, maker: maker, notes: combinedNotes, purchasePrice: purchasePrice, image: image, estimatedPeriod: estimatedPeriod, materials: materials, markings: markings, conditionNotes: conditionNotes, provenance: provenance)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
