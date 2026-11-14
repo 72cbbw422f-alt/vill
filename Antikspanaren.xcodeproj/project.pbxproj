@@ -39,7 +39,7 @@
     A10000000000000000000030 /* AntikspanarenApp.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AntikspanarenApp.swift; sourceTree = "<group>"; };
     A10000000000000000000031 /* Navigation */ = { isa = PBXGroup; children = (A10000000000000000000051); path = Navigation; sourceTree = "<group>"; };
     A10000000000000000000032 /* Theme */ = { isa = PBXGroup; children = (A10000000000000000000052); path = Theme; sourceTree = "<group>"; };
-    A10000000000000000000033 /* Features */ = { isa = PBXGroup; children = (A10000000000000000000060, A10000000000000000000061, A10000000000000000000062); path = Features; sourceTree = "<group>"; };
+    A10000000000000000000033 /* Features */ = { isa = PBXGroup; children = (A10000000000000000000060, A10000000000000000000061, A10000000000000000000062, A10000000000000000000091); path = Features; sourceTree = "<group>"; };
     A10000000000000000000034 /* Models */ = { isa = PBXGroup; children = (A10000000000000000000053, A10000000000000000000054, A10000000000000000000055); path = Models; sourceTree = "<group>"; };
     A10000000000000000000051 /* MainTabView.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
     A10000000000000000000052 /* AntiqueTheme.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AntiqueTheme.swift; sourceTree = "<group>"; };
