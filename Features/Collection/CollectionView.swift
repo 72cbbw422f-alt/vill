@@ -2,6 +2,16 @@ import SwiftUI
 
 struct CollectionView: View {
     @EnvironmentObject private var collection: CollectionStore
+    @State private var searchText = ""
+
+    private var filteredItems: [SavedAntique] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return collection.items }
+        return collection.items.filter { item in
+            [item.title, item.maker, item.estimatedPeriod, item.materials, item.markings, item.provenance, item.notes]
+                .contains { $0.localizedCaseInsensitiveContains(query) }
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,13 +32,55 @@ struct CollectionView: View {
                             }
                             .padding(.top, 25)
 
-                            ForEach(collection.items) { item in
-                                NavigationLink {
-                                    AntiqueDetailView(item: item)
-                                } label: {
-                                    itemRow(item)
+                            HStack(spacing: 10) {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundStyle(AntiqueTheme.brass)
+                                TextField("Sök namn, tillverkare, material, märkning …", text: $searchText)
+                                    .font(.system(size: 14, design: .serif))
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                                if !searchText.isEmpty {
+                                    Button {
+                                        searchText = ""
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(AntiqueTheme.mutedInk)
+                                    }
+                                    .accessibilityLabel("Rensa sökning")
                                 }
-                                .buttonStyle(.plain)
+                            }
+                            .padding(12)
+                            .background(AntiqueTheme.parchment)
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55), lineWidth: 1))
+
+                            if filteredItems.isEmpty {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.title2)
+                                        .foregroundStyle(AntiqueTheme.brass)
+                                    Text("Inga föremål matchar sökningen")
+                                        .font(AntiqueTheme.title(19))
+                                        .foregroundStyle(AntiqueTheme.forest)
+                                    Text("Prova ett annat namn, material eller en märkning.")
+                                        .font(.system(size: 12, design: .serif))
+                                        .foregroundStyle(AntiqueTheme.mutedInk)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 32)
+                            } else {
+                                Text(searchText.isEmpty ? "KATALOGREGISTER" : "\(filteredItems.count) TRÄFFAR")
+                                    .font(.system(size: 10, weight: .semibold, design: .serif))
+                                    .tracking(1.4)
+                                    .foregroundStyle(AntiqueTheme.brass)
+
+                                ForEach(filteredItems) { item in
+                                    NavigationLink {
+                                        AntiqueDetailView(item: item)
+                                    } label: {
+                                        itemRow(item)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
