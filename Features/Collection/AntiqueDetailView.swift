@@ -119,20 +119,32 @@ struct AntiqueDetailView: View {
         }
         .onChange(of: selectedImages) { _, newItems in
             Task {
-                for photo in newItems {
-                    guard let data = try? await photo.loadTransferable(type: Data.self),
-                          let image = UIImage(data: data) else { continue }
-                    do {
-                        try collection.addImage(image, to: item.id)
-                        if let refreshed = collection.items.first(where: { $0.id == item.id }) {
-                            item = refreshed
-                        }
-                    } catch {
-                        message = error.localizedDescription
-                    }
-                }
-                selectedImages = []
+                await importSelectedImages(newItems)
             }
+        }
+    }
+
+    @MainActor
+    private func importSelectedImages(_ photos: [PhotosPickerItem]) async {
+        for photo in photos {
+            guard let data = try? await photo.loadTransferable(type: Data.self) else { continue }
+            guard let image = UIImage(data: data) else { continue }
+            do {
+                try collection.addImage(image, to: item.id)
+                refreshItemFromCollection()
+            } catch {
+                message = error.localizedDescription
+            }
+        }
+        selectedImages = []
+    }
+
+    private func refreshItemFromCollection() {
+        let currentID = item.id
+        if let refreshedItem = collection.items.first(where: { candidate in
+            candidate.id == currentID
+        }) {
+            item = refreshedItem
         }
     }
 
