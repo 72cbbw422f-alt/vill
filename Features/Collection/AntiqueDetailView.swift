@@ -357,7 +357,8 @@ struct AntiqueDetailView: View {
             message = "PDF-filen kunde inte skapas: \\(error.localizedDescription)"
         }
     }
-\n    private func removePhoto(_ filename: String) {
+
+    private func removePhoto(_ filename: String) {
         do {
             try collection.removeAdditionalImage(filename, from: item.id)
             if let refreshed = collection.items.first(where: { $0.id == item.id }) {
