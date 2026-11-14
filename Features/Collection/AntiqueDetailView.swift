@@ -61,23 +61,8 @@ struct AntiqueDetailView: View {
 
                     valuationSection
 
-                    if let message {
-                        Text(message)
-                            .font(.system(size: 13, design: .serif))
-                            .foregroundStyle(AntiqueTheme.forest)
-                    }
-
-                    Button(action: save) {
-                        Label("Spara ändringar", systemImage: "checkmark")
-                            .font(.system(size: 16, weight: .medium, design: .serif))
-                            .foregroundStyle(AntiqueTheme.parchment)
-                            .frame(maxWidth: .infinity)
-                            .padding(15)
-                            .background(AntiqueTheme.forest)
-                            .clipShape(RoundedRectangle(cornerRadius: 5))
-                    }
-                    .padding(.top, 4)
-                    .padding(.bottom, 28)
+                    messageView
+                    saveButton
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 18)
@@ -207,6 +192,29 @@ struct AntiqueDetailView: View {
                     .foregroundStyle(AntiqueTheme.forest)
             }
         }
+    }
+
+    @ViewBuilder
+    private var messageView: some View {
+        if let message {
+            Text(message)
+                .font(.system(size: 13, design: .serif))
+                .foregroundStyle(AntiqueTheme.forest)
+        }
+    }
+
+    private var saveButton: some View {
+        Button(action: save) {
+            Label("Spara ändringar", systemImage: "checkmark")
+                .font(.system(size: 16, weight: .medium, design: .serif))
+                .foregroundStyle(AntiqueTheme.parchment)
+                .frame(maxWidth: .infinity)
+                .padding(15)
+                .background(AntiqueTheme.forest)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+        }
+        .padding(.top, 4)
+        .padding(.bottom, 28)
     }
 
     private var valuationSection: some View {
