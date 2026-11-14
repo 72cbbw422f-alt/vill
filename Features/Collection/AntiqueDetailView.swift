@@ -682,13 +682,13 @@ private enum AntiqueCatalogPDF {
 
             for (heading, value) in sections {
                 let labelSize = (heading as NSString).boundingRect(
-                    with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                    with: CGSize(width: 520, height: CGFloat.greatestFiniteMagnitude),
                     options: [.usesLineFragmentOrigin, .usesFontLeading],
                     attributes: labelAttributes,
                     context: nil
                 ).height
                 let valueSize = (value as NSString).boundingRect(
-                    with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                    with: CGSize(width: 520, height: CGFloat.greatestFiniteMagnitude),
                     options: [.usesLineFragmentOrigin, .usesFontLeading],
                     attributes: bodyAttributes,
                     context: nil
@@ -711,7 +711,7 @@ private enum AntiqueCatalogPDF {
                     }
 
                     let fullSize = remaining.boundingRect(
-                        with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                        with: CGSize(width: 520, height: CGFloat.greatestFiniteMagnitude),
                         options: [.usesLineFragmentOrigin, .usesFontLeading],
                         attributes: bodyAttributes,
                         context: nil
@@ -728,7 +728,7 @@ private enum AntiqueCatalogPDF {
                             let mid = (low + high) / 2
                             let candidate = remaining.substring(to: mid) as NSString
                             let size = candidate.boundingRect(
-                                with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                                with: CGSize(width: 520, height: CGFloat.greatestFiniteMagnitude),
                                 options: [.usesLineFragmentOrigin, .usesFontLeading],
                                 attributes: bodyAttributes,
                                 context: nil
@@ -752,7 +752,7 @@ private enum AntiqueCatalogPDF {
                         }
                         let chunk = remaining.substring(to: best) as NSString
                         let chunkSize = chunk.boundingRect(
-                            with: CGSize(width: 520, height: .greatestFiniteMagnitude),
+                            with: CGSize(width: 520, height: CGFloat.greatestFiniteMagnitude),
                             options: [.usesLineFragmentOrigin, .usesFontLeading],
                             attributes: bodyAttributes,
                             context: nil
@@ -766,7 +766,7 @@ private enum AntiqueCatalogPDF {
             }
         }
 
-        try data.write(to: url, options: .atomic)
+        try data.write(to: url, options: Data.WritingOptions.atomic)
         return url
     }
 }
