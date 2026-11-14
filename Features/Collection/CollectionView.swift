@@ -33,6 +33,7 @@ struct CollectionView: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.bottom, 30)
+                        .safeAreaPadding(.bottom, 82)
                     }
                 }
             }
