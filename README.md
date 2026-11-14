@@ -45,6 +45,7 @@ Antikspanaren/
 - [x] Omarbetad startsida, samlingsvy och informationsvy
 - [x] Scanner med kamera och bildbibliotek
 - [x] Kostnadsfri textigenkänning direkt på enheten med Apple Vision
+- [x] Kostnadsfri generell bildklassificering lokalt med Vision för breda visuella ledtrådar
 - [x] Visa avläst text och spara den tillsammans med föremålets anteckningar
 - [x] Spara föremål med namn, tillverkare, inköpspris och egna anteckningar
 - [x] Lokal lagring av föremålsdata och bildfiler
@@ -58,7 +59,7 @@ Antikspanaren/
 - [x] Bakåtkompatibel avkodning av tidigare sparade föremål
 - [x] Radera enskilda prisreferenser
 - [x] Redigera enskilda prisreferenser
-- [ ] Bildbaserad föremålsidentifiering utan betald molntjänst
+- [ ] Specialiserad bildbaserad antikidentifiering utan betald molntjänst
 - [ ] Källbelagd automatisk värdering från kostnadsfria och tillåtna källor
 - [ ] Komplett Xcode-projekt och bygg-/testpipeline
 - [ ] IPA-export och signeringsflöde för sidladdning
@@ -77,6 +78,6 @@ Föremålsuppgifter och bildfiler sparas lokalt i appens dokumentkatalog. Ingen 
 6. Ingen funktion får införa en löpande kostnad för användaren eller utvecklaren.
 
 ## Byggstatus
-Detta repo innehåller SwiftUI-källkod. Ett komplett Xcode-projekt, signering och IPA-export återstår. Den nya textigenkänningen är implementerad i källkoden men har ännu inte verifierats genom en Xcode-build. Rekommenderad bas är iOS 17 eller senare.
+Detta repo innehåller SwiftUI-källkod. Ett komplett Xcode-projekt, signering och IPA-export återstår. Lokal textigenkänning och generell bildklassificering är implementerade i källkoden men har ännu inte verifierats genom en Xcode-build. Bildklassificeringen är generell och ska inte tolkas som en expertbedömning av antikviteter. Rekommenderad bas är iOS 17 eller senare.
 
 För sidladdning behöver IPA-filen signeras. Gratis signering via Apple-ID har normalt en begränsad giltighetstid och måste förnyas regelbundet; det är en distributionsbegränsning, inte en kostnad från Antikspanaren.
