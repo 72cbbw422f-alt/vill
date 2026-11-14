@@ -24,6 +24,8 @@ struct AntiqueDetailView: View {
                 VStack(alignment: .leading, spacing: 22) {
                     imageGallery
 
+                    inspectionOverview
+
                     VStack(alignment: .leading, spacing: 5) {
                         eyebrow("FÖREMÅLSKATALOG")
                         Text(item.title.isEmpty ? "Namnlöst föremål" : item.title)
@@ -151,6 +153,60 @@ struct AntiqueDetailView: View {
         }) {
             item = refreshedItem
         }
+    }
+
+    private var inspectionOverview: some View {
+        let checks: [(String, Bool)] = [
+            ("Föremålets namn", !item.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && item.title != "Oidentifierat föremål"),
+            ("Tillverkare", !item.maker.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty),
+            ("Tidsperiod", !item.estimatedPeriod.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty),
+            ("Material", !item.materials.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty),
+            ("Märkningar", !item.markings.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty),
+            ("Skick", !item.conditionNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty),
+            ("Proveniens", !item.provenance.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        ]
+        let completed = checks.filter(\.1).count
+
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("UNDERSÖKNINGENS STATUS")
+                    .font(.system(size: 10, weight: .semibold, design: .serif))
+                    .tracking(1.2)
+                    .foregroundStyle(AntiqueTheme.brass)
+                Spacer()
+                Text("\(completed) av \(checks.count)")
+                    .font(.system(size: 12, weight: .medium, design: .serif).monospacedDigit())
+                    .foregroundStyle(AntiqueTheme.forest)
+            }
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(AntiqueTheme.brass.opacity(0.2))
+                    Capsule()
+                        .fill(AntiqueTheme.forest)
+                        .frame(width: geometry.size.width * CGFloat(completed) / CGFloat(checks.count))
+                }
+            }
+            .frame(height: 5)
+
+            Text(completed == checks.count
+                 ? "Grunduppgifterna är dokumenterade. Kontrollera fortfarande uppgifterna mot föremålet och tillförlitliga källor."
+                 : "Komplettera gärna de uppgifter som saknas. Lämna hellre ett fält tomt än att ange något du inte vet.")
+                .font(.system(size: 12, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+
+            HStack(alignment: .top, spacing: 6) {
+                Image(systemName: "checkmark.circle")
+                    .foregroundStyle(AntiqueTheme.forest)
+                Text(checks.filter(\.1).map(\.0).joined(separator: " · ").isEmpty
+                     ? "Inga uppgifter dokumenterade ännu"
+                     : "Dokumenterat: " + checks.filter(\.1).map(\.0).joined(separator: " · "))
+                    .foregroundStyle(AntiqueTheme.ink)
+            }
+            .font(.system(size: 11, design: .serif))
+        }
+        .padding(14)
+        .background(AntiqueTheme.parchment)
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55), lineWidth: 1))
     }
 
     private var imageGallery: some View {
