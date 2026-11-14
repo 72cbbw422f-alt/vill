@@ -134,7 +134,7 @@ struct AntiqueDetailView: View {
         VStack(alignment: .leading, spacing: 10) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
-                    ForEach(Array(item.allImageFileNames.enumerated()), id: \.offset) { _, filename in
+                    ForEach(Array(item.allImageFileNames.enumerated()), id: \.offset) { index, filename in
                         Group {
                             if let image = collection.image(named: filename) {
                                 Image(uiImage: image)
@@ -150,6 +150,29 @@ struct AntiqueDetailView: View {
                                         .foregroundStyle(AntiqueTheme.brass)
                                 }
                                 .frame(width: 270, height: 250)
+                            }
+                        }
+                        .overlay(alignment: .topTrailing) {
+                            if index > 0 {
+                                Button {
+                                    removePhoto(filename)
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                        .padding(9)
+                                        .background(AntiqueTheme.walnut.opacity(0.9), in: Circle())
+                                }
+                                .padding(9)
+                                .accessibilityLabel("Ta bort bilden")
+                            } else {
+                                Text("Omslagsbild")
+                                    .font(.system(size: 10, weight: .medium, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.parchment)
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 6)
+                                    .background(AntiqueTheme.forest.opacity(0.92))
+                                    .padding(9)
                             }
                         }
                         .overlay(Rectangle().stroke(AntiqueTheme.brass.opacity(0.65), lineWidth: 1))
@@ -294,6 +317,18 @@ struct AntiqueDetailView: View {
             .font(.system(size: 9, weight: .semibold, design: .serif))
             .tracking(2)
             .foregroundStyle(AntiqueTheme.brass)
+    }
+
+    private func removePhoto(_ filename: String) {
+        do {
+            try collection.removeAdditionalImage(filename, from: item.id)
+            if let refreshed = collection.items.first(where: { $0.id == item.id }) {
+                item = refreshed
+            }
+            message = "Bilden har tagits bort."
+        } catch {
+            message = error.localizedDescription
+        }
     }
 
     private func save() {
