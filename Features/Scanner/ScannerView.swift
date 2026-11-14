@@ -525,6 +525,31 @@ struct ScannerView: View {
                 }
             }
 
+            if !markingManufacturerMatches.isEmpty {
+                VStack(alignment: .leading, spacing: 9) {
+                    Text("MÖJLIGA TILLVERKARTRÄFFAR")
+                        .font(.system(size: 10, weight: .semibold, design: .serif))
+                        .tracking(1)
+                        .foregroundStyle(AntiqueTheme.brass)
+                    ForEach(markingManufacturerMatches, id: \.maker) { match in
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(match.maker)
+                                .font(.system(size: 15, weight: .semibold, design: .serif))
+                                .foregroundStyle(AntiqueTheme.forest)
+                            Text(match.note)
+                                .font(.system(size: 12, design: .serif))
+                                .foregroundStyle(AntiqueTheme.ink)
+                            Text("Träff i avläst märkning: “\\(match.matchedText)”")
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(AntiqueTheme.mutedInk)
+                        }
+                    }
+                    Text("Detta är namnträffar i bildens text – inte en verifierad attribuering. Kontrollera stämpelns utformning, placering och originalbild.")
+                        .font(.system(size: 11, design: .serif))
+                        .foregroundStyle(AntiqueTheme.mutedInk)
+                }
+            }
+
             VStack(alignment: .leading, spacing: 6) {
                 Text("NÄSTA BILDER ATT TA")
                     .font(.system(size: 10, weight: .semibold, design: .serif))
@@ -544,6 +569,38 @@ struct ScannerView: View {
         .padding(16)
         .background(AntiqueTheme.parchment)
         .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.65), lineWidth: 1))
+    }
+
+    private var markingManufacturerMatches: [(maker: String, note: String, matchedText: String)] {
+        let source = [rawMarkingText, recognizedText]
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .joined(separator: "\\n")
+        let normalizedSource = source.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        let references: [(maker: String, aliases: [String], note: String)] = [
+            ("Rörstrand", ["Rörstrand", "Rorstrand"], "Svensk porslins- och keramikproducent. Jämför stämpelns typografi och eventuell modell- eller dekorbeteckning."),
+            ("Gustavsberg", ["Gustavsberg"], "Svensk porslins- och keramikproducent. Studera även eventuell formgivarsignatur och godsstämpel."),
+            ("Gefle", ["Gefle"], "Porslinsfabrik med koppling till Gefle Porslinsfabrik. Kontrollera stämpelvariant och dekor."),
+            ("Upsala-Ekeby", ["Upsala-Ekeby", "Upsala Ekeby"], "Svensk keramik- och porslinstillverkare. Jämför logotyp, modell och dekor."),
+            ("Höganäs", ["Höganäs", "Hoganas"], "Namn förknippat med svensk keramik. Kontrollera om märkningen avser fabrik, ort eller senare återförsäljning."),
+            ("Jie Gantofta", ["Jie Gantofta", "JIE"], "Svensk keramikproducent. En kort JIE-träff är svag och måste kontrolleras visuellt."),
+            ("Kosta", ["Kosta"], "Svenskt glasbruk. Kontrollera gravyr, etikett eller annan märkning innan attribuering."),
+            ("Boda", ["Boda"], "Svenskt glasbruk. Namnet ensamt räcker inte för att datera eller identifiera glaset."),
+            ("Orrefors", ["Orrefors"], "Svenskt glasbruk. Jämför signatur, etikett och formgivarnamn."),
+            ("Skruf", ["Skruf"], "Svenskt glasbruk. Kontrollera signatur och eventuell modellbeteckning."),
+            ("Målerås", ["Målerås", "Mal eras"], "Svenskt glasbruk. Kontrollera signatur, etikett och formgivare."),
+            ("Arabia", ["Arabia"], "Finsk porslinstillverkare. Jämför fabriksmärkningens form och tidsvariant."),
+            ("Royal Copenhagen", ["Royal Copenhagen"], "Dansk porslinstillverkare. Kontrollera kronstämpel och övriga underglasyrmärken."),
+            ("Bing & Grøndahl", ["Bing & Grondahl", "Bing og Grondahl"], "Dansk porslinstillverkare. Jämför de tre tornen och stämpelns utformning.")
+        ]
+
+        return references.compactMap { reference in
+            for alias in reference.aliases {
+                let normalizedAlias = alias.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+                guard normalizedSource.contains(normalizedAlias) else { continue }
+                return (reference.maker, reference.note, alias)
+            }
+            return nil
+        }
     }
 
     private func reportRow(_ heading: String, _ detail: String) -> some View {
