@@ -26,26 +26,29 @@ Antikspanaren/
 │   └── Profile/ProfileView.swift
 └── Models/
     ├── AntiqueItem.swift
-    └── Valuation.swift
+    ├── Valuation.swift
+    └── CollectionStore.swift
 ```
 
 ## Status – grundversion
-- [x] SwiftUI-appens startpunkt
-- [x] Navigation: Hem, Skanna, Samling och Profil
+- [x] SwiftUI-appens startpunkt och navigation
 - [x] Antikt färg- och typografisystem
-- [x] Omarbetad startsida med tydlig väg in i undersökningen
+- [x] Omarbetad startsida, samlingsvy och informationsvy
 - [x] Scanner med kamera och bildbibliotek
 - [x] Gemensam bildförhandsvisning
-- [x] Samlingsvy med kataloginspirerad tomvy
-- [x] Informationsvy med principer för källkritik och värdering
-- [x] Grundmodeller för föremål och värderingsunderlag
+- [x] Spara föremål med namn, tillverkare, inköpspris och egna anteckningar
+- [x] Lokal lagring av föremålsdata och bildfiler i appens dokumentkatalog
+- [x] Visa sparade föremål i samlingen
+- [ ] Redigera och radera sparade föremål
+- [ ] Flera bilder per föremål och separat detaljvy
 - [ ] Bildanalys och AI-identifiering
 - [ ] Källbelagd värdering
-- [ ] Lokal lagring och samling
 - [ ] Xcode-projekt och bygg-/testpipeline
 
 ## Integritet och behörigheter
 När Xcode-projektet sätts upp måste appens `Info.plist` innehålla `NSCameraUsageDescription` med en tydlig svensk förklaring till varför kameran används. Bildbiblioteket hanteras via PhotosPicker och kräver inte generell åtkomst till hela bildbiblioteket.
+
+Föremålsuppgifter och kopierade bildfiler sparas lokalt i appens dokumentkatalog. Ingen molnsynkronisering är implementerad.
 
 ## Kvalitetsprinciper
 1. AI-förslag får aldrig presenteras som verifierade fakta.
