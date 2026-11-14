@@ -11,6 +11,7 @@ struct AntiqueDetailView: View {
     @State private var evidenceToEdit: SavedPriceEvidence?
     @State private var showingDeleteConfirmation = false
     @State private var message: String?
+    @State private var exportedPDF: URL?
 
     init(item: SavedAntique) {
         _item = State(initialValue: item)
@@ -87,6 +88,11 @@ struct AntiqueDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    Button {
+                        exportCatalogSheet()
+                    } label: {
+                        Label("Exportera katalogblad som PDF", systemImage: "doc.richtext")
+                    }
                     Button(role: .destructive) {
                         showingDeleteConfirmation = true
                     } label: {
@@ -97,6 +103,10 @@ struct AntiqueDetailView: View {
                         .foregroundStyle(AntiqueTheme.forest)
                 }
             }
+        }
+        .sheet(item: $exportedPDF) { url in
+            ActivityShareSheet(activityItems: [url])
+                .presentationDetents([.medium, .large])
         }
         .confirmationDialog("Radera föremålet ur samlingen?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
             Button("Radera", role: .destructive, action: deleteItem)
@@ -338,7 +348,16 @@ struct AntiqueDetailView: View {
             .foregroundStyle(AntiqueTheme.brass)
     }
 
-    private func removePhoto(_ filename: String) {
+
+    private func exportCatalogSheet() {
+        do {
+            let url = try AntiqueCatalogPDF.create(item: item, coverImage: collection.image(for: item))
+            exportedPDF = url
+        } catch {
+            message = "PDF-filen kunde inte skapas: \\(error.localizedDescription)"
+        }
+    }
+\n    private func removePhoto(_ filename: String) {
         do {
             try collection.removeAdditionalImage(filename, from: item.id)
             if let refreshed = collection.items.first(where: { $0.id == item.id }) {
@@ -468,5 +487,99 @@ private struct AddEvidenceSheet: View {
                 .padding(11)
                 .background(AntiqueTheme.parchment.opacity(0.7))
         }
+    }
+}
+
+
+private struct ActivityShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
+}
+
+private enum AntiqueCatalogPDF {
+    static func create(item: SavedAntique, coverImage: UIImage?) throws -> URL {
+        let page = CGRect(x: 0, y: 0, width: 612, height: 792)
+        let renderer = UIGraphicsPDFRenderer(bounds: page)
+        let filename = "Antikspanaren-\\(item.title.replacingOccurrences(of: "/", with: "-")).pdf"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        let ink = UIColor(red: 0.12, green: 0.16, blue: 0.13, alpha: 1)
+        let green = UIColor(red: 0.055, green: 0.145, blue: 0.105, alpha: 1)
+        let brass = UIColor(red: 0.76, green: 0.59, blue: 0.30, alpha: 1)
+        let paper = UIColor(red: 0.96, green: 0.93, blue: 0.86, alpha: 1)
+
+        let body = [
+            ("TILLVERKARE / KONSTNÄR", item.maker),
+            ("TIDSPERIOD", item.estimatedPeriod),
+            ("MATERIAL", item.materials),
+            ("MÄRKNINGAR OCH KÄNNETECKEN", item.markings),
+            ("SKICK", item.conditionNotes),
+            ("HISTORIK OCH PROVENIENS", item.provenance),
+            ("INKÖPSPRIS", item.purchasePrice.isEmpty ? "" : item.purchasePrice + " kr"),
+            ("EGEN VÄRDEUPPSKATTNING", [item.valuationLow, item.valuationHigh].filter { !$0.isEmpty }.joined(separator: " – ") + ((item.valuationLow.isEmpty && item.valuationHigh.isEmpty) ? "" : " kr")),
+            ("KOMMENTAR TILL UPPSKATTNINGEN", item.valuationNotes),
+            ("ANTECKNINGAR", item.notes)
+        ].filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+        let evidenceText = item.evidence.map { evidence in
+            "\\(evidence.kind.title): \\(evidence.amount) kr · \\(evidence.sourceName)\\(evidence.date.map { " · " + $0.formatted(date: .numeric, time: .omitted) } ?? "")\\n\\(evidence.notes)"
+        }.joined(separator: "\\n\\n")
+
+        let text = body.map { "\\($0.0)\\n\\($0.1)" }.joined(separator: "\\n\\n")
+            + (evidenceText.isEmpty ? "" : "\\n\\nPRISREFERENSER OCH KÄLLOR\\n\\(evidenceText)")
+        let data = renderer.pdfData { context in
+            context.beginPage()
+            paper.setFill()
+            context.cgContext.fill(page)
+            brass.setStroke()
+            context.cgContext.setLineWidth(1)
+            context.cgContext.stroke(page.insetBy(dx: 28, dy: 28))
+
+            let masthead = "ANTIKSPANAREN  ·  FÖREMÅLSKATALOG"
+            (masthead as NSString).draw(at: CGPoint(x: 46, y: 44), withAttributes: [
+                .font: UIFont(name: "Georgia-Bold", size: 9) ?? UIFont.boldSystemFont(ofSize: 9),
+                .foregroundColor: brass,
+                .kern: 1.5
+            ])
+
+            var y: CGFloat = 70
+            if let coverImage {
+                let imageRect = CGRect(x: 46, y: y, width: 150, height: 145)
+                let ratio = min(imageRect.width / coverImage.size.width, imageRect.height / coverImage.size.height)
+                let size = CGSize(width: coverImage.size.width * ratio, height: coverImage.size.height * ratio)
+                coverImage.draw(in: CGRect(x: imageRect.midX - size.width / 2, y: imageRect.midY - size.height / 2, width: size.width, height: size.height))
+                y += 160
+            }
+
+            let titleAttributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont(name: "Georgia", size: 25) ?? UIFont.systemFont(ofSize: 25),
+                .foregroundColor: green
+            ]
+            (item.title as NSString).draw(in: CGRect(x: 46, y: y, width: 520, height: 38), withAttributes: titleAttributes)
+            y += 48
+
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.lineSpacing = 3
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont(name: "Georgia", size: 10) ?? UIFont.systemFont(ofSize: 10),
+                .foregroundColor: ink,
+                .paragraphStyle: paragraph
+            ]
+            let attributed = NSAttributedString(string: text, attributes: attributes)
+            let available = CGRect(x: 46, y: y, width: 520, height: 792 - y - 55)
+            attributed.draw(in: available)
+
+            let footer = "Skapad \\(Date.now.formatted(date: .long, time: .omitted))  ·  Egna uppgifter och dokumenterade prisreferenser"
+            (footer as NSString).draw(at: CGPoint(x: 46, y: 755), withAttributes: [
+                .font: UIFont(name: "Georgia", size: 8) ?? UIFont.systemFont(ofSize: 8),
+                .foregroundColor: UIColor.darkGray
+            ])
+        }
+        try data.write(to: url, options: .atomic)
+        return url
     }
 }
