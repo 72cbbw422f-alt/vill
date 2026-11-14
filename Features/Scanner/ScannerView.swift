@@ -321,10 +321,10 @@ struct ScannerView: View {
                 .font(.system(size: 11, weight: .semibold, design: .serif))
                 .tracking(1.2)
                 .foregroundStyle(AntiqueTheme.brass)
-            Text("Sök i The Metropolitan Museum of Arts öppna samling. Träffar är jämförelsematerial – inte bevis för att ditt föremål är samma objekt.")
+            Text("Sök i Metropolitan Museum of Arts öppna samling. Träffar är jämförelsematerial – inte bevis för att ditt föremål är samma objekt.")
                 .font(.system(size: 13, design: .serif))
                 .foregroundStyle(AntiqueTheme.mutedInk)
-            TextField("Exempel: Rörstrand, porcelain vase …", text: $museumSearchText)
+            TextField("Exempel: Rörstrand, porslinsvas …", text: $museumSearchText)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .padding(12)
@@ -614,7 +614,9 @@ struct ScannerView: View {
             "picture": "Bild", "book": "Bok", "sculpture": "Skulptur", "figurine": "Figurin",
             "jewelry": "Smycke", "ring": "Ring", "brooch": "Brosch", "coin": "Mynt",
             "furniture": "Möbel", "wood": "Träföremål", "metal": "Metallföremål",
-            "ceramic": "Keramik", "porcelain": "Porslin"
+            "ceramic": "Keramik", "porcelain": "Porslin",
+            "tableware": "Bordsservis", "utensil": "Redskap", "dishware": "Porslin och servis",
+            "crockery": "Servis", "cutlery": "Bestick", "kitchenware": "Köksföremål"
         ]
         return translations[key] ?? identifier.replacingOccurrences(of: "_", with: " ").capitalized
     }
