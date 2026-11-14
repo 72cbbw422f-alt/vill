@@ -13,6 +13,7 @@ struct ScannerView: View {
     @State private var recognizedText = ""
     @State private var recognitionError: String?
     @State private var imageClues: [String] = []
+    @State private var primaryClue: String?
 
     var body: some View {
         NavigationStack {
@@ -102,6 +103,7 @@ struct ScannerView: View {
                                     image = selectedImage
                                     recognizedText = ""
                                     imageClues = []
+                                    primaryClue = nil
                                     recognitionError = nil
                                 }
                             }
@@ -140,6 +142,10 @@ struct ScannerView: View {
                                         }
                                 }
                             }
+                        }
+
+                        if primaryClue != nil || !recognizedText.isEmpty {
+                            analysisReport
                         }
 
                         if !imageClues.isEmpty {
@@ -205,6 +211,7 @@ struct ScannerView: View {
                 guard newImage != nil else { return }
                 recognizedText = ""
                 imageClues = []
+                primaryClue = nil
                 recognitionError = nil
             }
             .sheet(isPresented: $showingCamera) {
@@ -221,6 +228,92 @@ struct ScannerView: View {
         }
     }
 
+    private var analysisReport: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            Text("PRELIMINÄR FÖREMÅLSRAPPORT")
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .tracking(1.3)
+                .foregroundStyle(AntiqueTheme.brass)
+
+            if let primaryClue {
+                Text(primaryClue)
+                    .font(AntiqueTheme.title(25))
+                    .foregroundStyle(AntiqueTheme.forest)
+                Text("Bildmodellen känner igen en generell bildkategori. Det är en ledtråd om motivet – inte en säker identifiering av föremålet.")
+                    .font(.system(size: 13, design: .serif))
+                    .foregroundStyle(AntiqueTheme.mutedInk)
+            }
+
+            reportRow("Material och tillverkare", "Kan inte fastställas säkert från den här generella bildanalysen.")
+            reportRow("Ålder och ursprung", "Kräver märkningar, konstruktion, materialdetaljer och jämförelser med dokumenterade föremål.")
+            reportRow("Marknadsvärde", "Ingen värdering görs utan verifierbara jämförelseförsäljningar.")
+
+            if !recognizedText.isEmpty {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("AVLÄST TEXT")
+                        .font(.system(size: 10, weight: .semibold, design: .serif))
+                        .tracking(1)
+                        .foregroundStyle(AntiqueTheme.brass)
+                    Text(recognizedText)
+                        .font(.system(size: 14, design: .serif))
+                        .foregroundStyle(AntiqueTheme.ink)
+                        .textSelection(.enabled)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("NÄSTA BILDER ATT TA")
+                    .font(.system(size: 10, weight: .semibold, design: .serif))
+                    .tracking(1)
+                    .foregroundStyle(AntiqueTheme.brass)
+                ForEach(inspectionSuggestions(for: primaryClue), id: \.self) { suggestion in
+                    Label(suggestion, systemImage: "camera")
+                        .font(.system(size: 13, design: .serif))
+                        .foregroundStyle(AntiqueTheme.ink)
+                }
+            }
+            Text("Analysen görs på telefonen. Slutsatser om äkthet, datering och värde kräver fortsatt undersökning.")
+                .font(.system(size: 11, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(AntiqueTheme.parchment)
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.65), lineWidth: 1))
+    }
+
+    private func reportRow(_ heading: String, _ detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(heading.uppercased())
+                .font(.system(size: 10, weight: .semibold, design: .serif))
+                .tracking(0.8)
+                .foregroundStyle(AntiqueTheme.walnut)
+            Text(detail)
+                .font(.system(size: 13, design: .serif))
+                .foregroundStyle(AntiqueTheme.ink)
+        }
+    }
+
+    private func inspectionSuggestions(for clue: String?) -> [String] {
+        let category = clue?.lowercased() ?? ""
+        if category.contains("vas") || category.contains("keramik") || category.contains("porslin") || category.contains("skål") || category.contains("tallrik") || category.contains("kopp") {
+            return ["Fotografera undersidan rakt framifrån", "Ta närbild på stämplar, signaturer och etiketter", "Visa eventuell krackelering, nagg och lagningar"]
+        }
+        if category.contains("möbel") || category.contains("stol") || category.contains("bord") || category.contains("skåp") {
+            return ["Fotografera hela föremålet framifrån och bakifrån", "Visa beslag, fogar och undersida", "Ta närbilder på etiketter, märkningar och skador"]
+        }
+        if category.contains("målning") || category.contains("bild") || category.contains("tavla") {
+            return ["Fotografera signaturen i snett dagsljus", "Visa hela baksidan och eventuell etikett", "Ta närbild på ram, duk eller pannå"]
+        }
+        if category.contains("klock") || category.contains("ur") {
+            return ["Fotografera urtavla och visare", "Visa boettens baksida och eventuella nummer", "Dokumentera verk och märkningar om det kan göras säkert"]
+        }
+        if category.contains("smycke") || category.contains("ring") || category.contains("brosch") {
+            return ["Fotografera alla stämplar med makro", "Visa lås, infattningar och baksida", "Ta bild av föremålet bredvid en linjal"]
+        }
+        return ["Fotografera föremålet från flera vinklar", "Ta skarpa närbilder av stämplar och signaturer", "Visa undersida, baksida och eventuella skador"]
+    }
+
     private func recognizeText() {
         guard let image, let cgImage = image.cgImage else {
             recognitionError = "Bilden kunde inte läsas. Prova att välja eller ta en ny bild."
@@ -231,6 +324,7 @@ struct ScannerView: View {
         recognitionError = nil
         recognizedText = ""
         imageClues = []
+        primaryClue = nil
 
         DispatchQueue.global(qos: .userInitiated).async {
             let request = VNRecognizeTextRequest()
@@ -244,14 +338,16 @@ struct ScannerView: View {
                 try VNImageRequestHandler(cgImage: cgImage).perform([request, classification])
                 let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let result = lines.joined(separator: "\n")
-                let clues = (classification.results ?? [])
+                let rankedResults = (classification.results ?? [])
                     .filter { $0.confidence >= 0.12 }
                     .prefix(5)
-                    .map { Self.localizedClue($0.identifier) }
+                let clues = rankedResults.map { Self.localizedClue($0.identifier) }
+                let leadingClue = rankedResults.first.map { Self.localizedClue($0.identifier) }
 
                 DispatchQueue.main.async {
                     recognizedText = result
                     imageClues = Array(clues)
+                    primaryClue = leadingClue
                     if result.isEmpty && clues.isEmpty {
                         recognitionError = "Ingen tydlig text eller bildkategori hittades. Prova en ny bild med bättre ljus."
                     }
