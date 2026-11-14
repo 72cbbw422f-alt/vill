@@ -242,7 +242,12 @@ struct ScannerView: View {
 
 
     private var sourceResearchPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let hasSearchTerm = !sourceSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasAnalysisText = !recognizedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !rawMarkingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || primaryClue != nil
+
+        return VStack(alignment: .leading, spacing: 12) {
             Text("AUKTIONSHUS & MARKNADSRESEARCH")
                 .font(.system(size: 11, weight: .semibold, design: .serif))
                 .tracking(1.2)
@@ -256,23 +261,38 @@ struct ScannerView: View {
                 .padding(12)
                 .background(AntiqueTheme.paper)
                 .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
-            VStack(spacing: 8) {
-                sourceSearchLink("Auctionet", domain: "auctionet.com", icon: "hammer")
-                sourceSearchLink("Catawiki", domain: "catawiki.com", icon: "globe.europe.africa")
-                sourceSearchLink("Barnebys", domain: "barnebys.com", icon: "magnifyingglass")
-                sourceSearchLink("Bukowskis", domain: "bukowskis.com", icon: "building.columns")
-                sourceSearchLink("Stockholms Auktionsverk", domain: "stockholmsauktionsverk.com", icon: "building.2")
-                if let imageSearchURL = sourceSearchURL(domain: nil, images: true) {
-                    Link(destination: imageSearchURL) {
-                        Label("Bildsök – Google Bilder", systemImage: "photo.on.rectangle.angled")
-                            .font(.system(size: 14, weight: .medium, design: .serif))
-                            .foregroundStyle(AntiqueTheme.forest)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .background(AntiqueTheme.paper)
-                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55)))
+            if hasAnalysisText {
+                Button {
+                    prepareAuctionSearch()
+                } label: {
+                    Label("Använd avläst text i sökningen", systemImage: "text.magnifyingglass")
+                        .font(.system(size: 13, weight: .medium, design: .serif))
+                        .foregroundStyle(AntiqueTheme.forest)
+                }
+            }
+            if hasSearchTerm {
+                VStack(spacing: 8) {
+                    sourceSearchLink("Auctionet", domain: "auctionet.com", icon: "hammer")
+                    sourceSearchLink("Catawiki", domain: "catawiki.com", icon: "globe.europe.africa")
+                    sourceSearchLink("Barnebys", domain: "barnebys.com", icon: "magnifyingglass")
+                    sourceSearchLink("Bukowskis", domain: "bukowskis.com", icon: "building.columns")
+                    sourceSearchLink("Stockholms Auktionsverk", domain: "stockholmsauktionsverk.com", icon: "building.2")
+                    if let imageSearchURL = sourceSearchURL(domain: nil, images: true) {
+                        Link(destination: imageSearchURL) {
+                            Label("Bildsök – Google Bilder", systemImage: "photo.on.rectangle.angled")
+                                .font(.system(size: 14, weight: .medium, design: .serif))
+                                .foregroundStyle(AntiqueTheme.forest)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .background(AntiqueTheme.paper)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55)))
+                        }
                     }
                 }
+            } else {
+                Text("Skriv ett sökord eller använd text som lästs av från bilden för att aktivera sökningarna.")
+                    .font(.system(size: 12, design: .serif))
+                    .foregroundStyle(AntiqueTheme.mutedInk)
             }
             Text("Tips: sök på tillverkare, modell, signatur eller material. Jämför avslutade försäljningar separat från utropspriser och aktiva annonser. Samma objekt kan förekomma på flera plattformar.")
                 .font(.system(size: 11, design: .serif))
@@ -282,6 +302,20 @@ struct ScannerView: View {
         .padding(16)
         .background(AntiqueTheme.parchment)
         .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.65), lineWidth: 1))
+    }
+
+    private func prepareAuctionSearch() {
+        let source = rawMarkingText.isEmpty ? recognizedText : rawMarkingText
+        let cleanedLines = source
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        let extracted = cleanedLines.prefix(3).joined(separator: " ")
+        if !extracted.isEmpty {
+            sourceSearchText = String(extracted.prefix(100))
+        } else if let primaryClue {
+            sourceSearchText = primaryClue
+        }
     }
 
     @ViewBuilder
@@ -305,7 +339,7 @@ struct ScannerView: View {
 
     private func sourceSearchURL(domain: String?, images: Bool = false) -> URL? {
         let term = sourceSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !term.isEmpty else { return URL(string: "https://www.google.com") }
+        guard !term.isEmpty else { return nil }
         var query = term
         if let domain { query += " site:" + domain }
         var components = URLComponents(string: "https://www.google.com/search")
