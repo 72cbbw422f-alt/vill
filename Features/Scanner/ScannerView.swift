@@ -15,6 +15,10 @@ struct ScannerView: View {
     @State private var imageClues: [String] = []
     @State private var primaryClue: String?
     @State private var rawMarkingText = ""
+    @State private var museumSearchText = ""
+    @State private var museumResults: [MetMuseumObject] = []
+    @State private var isSearchingMuseums = false
+    @State private var museumSearchError: String?
 
     var body: some View {
         NavigationStack {
@@ -150,6 +154,10 @@ struct ScannerView: View {
                             analysisReport
                         }
 
+                        if image != nil {
+                            museumSearchPanel
+                        }
+
                         if !imageClues.isEmpty {
                             VStack(alignment: .leading, spacing: 9) {
                                 Text("VISUELLA LEDTRÅDAR")
@@ -228,6 +236,133 @@ struct ScannerView: View {
                         .presentationDragIndicator(.visible)
                 }
             }
+        }
+    }
+
+    private var museumSearchPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("JÄMFÖR MED DOKUMENTERADE FÖREMÅL")
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .tracking(1.2)
+                .foregroundStyle(AntiqueTheme.brass)
+            Text("Sök i The Metropolitan Museum of Arts öppna samling. Träffar är jämförelsematerial – inte bevis för att ditt föremål är samma objekt.")
+                .font(.system(size: 13, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+            TextField("Exempel: Rörstrand, porcelain vase …", text: $museumSearchText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .padding(12)
+                .background(AntiqueTheme.paper)
+                .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
+            Button {
+                Task { await searchMetCollection() }
+            } label: {
+                HStack {
+                    if isSearchingMuseums { ProgressView().tint(AntiqueTheme.parchment) }
+                    Label(isSearchingMuseums ? "Söker i museisamlingen …" : "Sök i museisamlingen", systemImage: "building.columns")
+                }
+                .font(.system(size: 15, weight: .medium, design: .serif))
+                .foregroundStyle(AntiqueTheme.parchment)
+                .frame(maxWidth: .infinity)
+                .padding(14)
+                .background(AntiqueTheme.forest)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+            }
+            .disabled(isSearchingMuseums || museumSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+            if let museumSearchError {
+                Text(museumSearchError)
+                    .font(.system(size: 12, design: .serif))
+                    .foregroundStyle(.red)
+            }
+
+            if !museumResults.isEmpty {
+                Text("TRÄFFAR I MUSEETS KATALOG")
+                    .font(.system(size: 10, weight: .semibold, design: .serif))
+                    .tracking(1)
+                    .foregroundStyle(AntiqueTheme.brass)
+                ForEach(museumResults) { item in
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(item.title.isEmpty ? "Utan titel" : item.title)
+                            .font(.system(size: 16, weight: .medium, design: .serif))
+                            .foregroundStyle(AntiqueTheme.forest)
+                        if !item.artistDisplayName.isEmpty {
+                            Text(item.artistDisplayName)
+                                .font(.system(size: 13, design: .serif))
+                                .foregroundStyle(AntiqueTheme.ink)
+                        }
+                        if !item.objectDate.isEmpty || !item.medium.isEmpty {
+                            Text([item.objectDate, item.medium].filter { !$0.isEmpty }.joined(separator: " · "))
+                                .font(.system(size: 12, design: .serif))
+                                .foregroundStyle(AntiqueTheme.mutedInk)
+                        }
+                        if !item.department.isEmpty {
+                            Text(item.department.uppercased())
+                                .font(.system(size: 9, weight: .semibold, design: .serif))
+                                .tracking(0.8)
+                                .foregroundStyle(AntiqueTheme.walnut)
+                        }
+                        if let url = URL(string: item.objectURL), !item.objectURL.isEmpty {
+                            Link("Visa museets katalogpost", destination: url)
+                                .font(.system(size: 12, weight: .medium, design: .serif))
+                                .foregroundStyle(AntiqueTheme.forest)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 10)
+                    if item.id != museumResults.last?.id {
+                        BrassDivider()
+                    }
+                }
+                Text("Museiposter beskriver föremål i samlingen. De är inte auktionsresultat och kan inte användas ensamma för marknadsvärdering.")
+                    .font(.system(size: 11, design: .serif))
+                    .foregroundStyle(AntiqueTheme.mutedInk)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(AntiqueTheme.parchment)
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.65), lineWidth: 1))
+    }
+
+    @MainActor
+    private func searchMetCollection() async {
+        let term = museumSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !term.isEmpty else { return }
+        isSearchingMuseums = true
+        museumSearchError = nil
+        museumResults = []
+        defer { isSearchingMuseums = false }
+
+        do {
+            var components = URLComponents(string: "https://collectionapi.metmuseum.org/public/collection/v1.1/search")!
+            components.queryItems = [URLQueryItem(name: "q", value: term), URLQueryItem(name: "hasImages", value: "true")]
+            guard let searchURL = components.url else { throw MetSearchError.invalidURL }
+            let (searchData, _) = try await URLSession.shared.data(from: searchURL)
+            let search = try JSONDecoder().decode(MetSearchResponse.self, from: searchData)
+            let ids = Array((search.objectIDs ?? []).prefix(5))
+            guard !ids.isEmpty else {
+                museumSearchError = "Inga träffar hittades. Prova ett annat namn, material eller en engelsk sökterm."
+                return
+            }
+
+            var found: [MetMuseumObject] = []
+            for id in ids {
+                guard let url = URL(string: "https://collectionapi.metmuseum.org/public/collection/v1/objects/\\(id)") else { continue }
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    let object = try JSONDecoder().decode(MetMuseumObject.self, from: data)
+                    if object.isPublicDomain { found.append(object) }
+                } catch {
+                    continue
+                }
+            }
+            museumResults = found
+            if found.isEmpty {
+                museumSearchError = "Museet hittade poster, men inga bildposter kunde hämtas just nu."
+            }
+        } catch {
+            museumSearchError = "Kunde inte nå museisamlingen. Kontrollera internetanslutningen och försök igen."
         }
     }
 
@@ -543,4 +678,25 @@ private struct CameraPicker: UIViewControllerRepresentable {
         }
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { parent.dismiss() }
     }
+}
+
+
+private struct MetSearchResponse: Decodable {
+    let objectIDs: [Int]?
+}
+
+private struct MetMuseumObject: Decodable, Identifiable {
+    let objectID: Int
+    let title: String
+    let artistDisplayName: String
+    let objectDate: String
+    let medium: String
+    let department: String
+    let objectURL: String
+    let isPublicDomain: Bool
+    var id: Int { objectID }
+}
+
+private enum MetSearchError: Error {
+    case invalidURL
 }
