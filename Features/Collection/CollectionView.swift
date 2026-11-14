@@ -155,7 +155,7 @@ struct CollectionView: View {
             Text("Din samling")
                 .font(AntiqueTheme.title(31))
                 .foregroundStyle(AntiqueTheme.forest)
-            Text("Ett personligt katalog över dina upptäckter.")
+            Text("En personlig katalog över dina upptäckter.")
                 .font(.system(size: 14, design: .serif))
                 .foregroundStyle(AntiqueTheme.mutedInk)
                 .multilineTextAlignment(.center)
