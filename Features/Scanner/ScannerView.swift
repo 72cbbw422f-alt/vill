@@ -577,26 +577,35 @@ struct ScannerView: View {
             .joined(separator: "\\n")
         let normalizedSource = source.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
         let references: [(maker: String, aliases: [String], note: String)] = [
-            ("Rörstrand", ["Rörstrand", "Rorstrand"], "Svensk porslins- och keramikproducent. Jämför stämpelns typografi och eventuell modell- eller dekorbeteckning."),
+            ("Rörstrand", ["Rörstrand"], "Svensk porslins- och keramikproducent. Jämför stämpelns typografi och eventuell modell- eller dekorbeteckning."),
             ("Gustavsberg", ["Gustavsberg"], "Svensk porslins- och keramikproducent. Studera även eventuell formgivarsignatur och godsstämpel."),
             ("Gefle", ["Gefle"], "Porslinsfabrik med koppling till Gefle Porslinsfabrik. Kontrollera stämpelvariant och dekor."),
             ("Upsala-Ekeby", ["Upsala-Ekeby", "Upsala Ekeby"], "Svensk keramik- och porslinstillverkare. Jämför logotyp, modell och dekor."),
             ("Höganäs", ["Höganäs", "Hoganas"], "Namn förknippat med svensk keramik. Kontrollera om märkningen avser fabrik, ort eller senare återförsäljning."),
-            ("Jie Gantofta", ["Jie Gantofta", "JIE"], "Svensk keramikproducent. En kort JIE-träff är svag och måste kontrolleras visuellt."),
+            ("Jie Gantofta", ["Jie Gantofta", "JIE"], "Svensk keramikproducent. Kontrollera att den korta märkningen verkligen är JIE och inte en del av annan text."),
+            ("Nittsjö", ["Nittsjö", "Nittsjo"], "Svensk keramikproducent. Jämför stämpel, form och eventuell modellbeteckning."),
+            ("Bo Fajans", ["Bo Fajans"], "Svensk fajans- och keramikproducent. Kontrollera stämpelvariant och dekor."),
             ("Kosta", ["Kosta"], "Svenskt glasbruk. Kontrollera gravyr, etikett eller annan märkning innan attribuering."),
             ("Boda", ["Boda"], "Svenskt glasbruk. Namnet ensamt räcker inte för att datera eller identifiera glaset."),
             ("Orrefors", ["Orrefors"], "Svenskt glasbruk. Jämför signatur, etikett och formgivarnamn."),
             ("Skruf", ["Skruf"], "Svenskt glasbruk. Kontrollera signatur och eventuell modellbeteckning."),
-            ("Målerås", ["Målerås", "Mal eras"], "Svenskt glasbruk. Kontrollera signatur, etikett och formgivare."),
+            ("Målerås", ["Målerås", "Maleras"], "Svenskt glasbruk. Kontrollera signatur, etikett och formgivare."),
+            ("Iittala", ["Iittala"], "Finskt glas- och designvarumärke. Jämför etikett, signatur och formgivare."),
+            ("Nuutajärvi", ["Nuutajärvi", "Nuutajarvi"], "Finskt glasbruk. Kontrollera etikett, signatur och modell."),
+            ("Riihimäen Lasi", ["Riihimäen Lasi", "Riihimaen Lasi"], "Finskt glasbruk. Jämför märkning och föremålets form."),
             ("Arabia", ["Arabia"], "Finsk porslinstillverkare. Jämför fabriksmärkningens form och tidsvariant."),
             ("Royal Copenhagen", ["Royal Copenhagen"], "Dansk porslinstillverkare. Kontrollera kronstämpel och övriga underglasyrmärken."),
-            ("Bing & Grøndahl", ["Bing & Grondahl", "Bing og Grondahl"], "Dansk porslinstillverkare. Jämför de tre tornen och stämpelns utformning.")
+            ("Bing & Grøndahl", ["Bing & Grøndahl", "Bing & Grondahl", "Bing og Grondahl"], "Dansk porslinstillverkare. Jämför de tre tornen och stämpelns utformning."),
+            ("Holmegaard", ["Holmegaard"], "Danskt glasbruk. Kontrollera signatur, etikett och modell.")
         ]
 
         return references.compactMap { reference in
             for alias in reference.aliases {
                 let normalizedAlias = alias.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-                guard normalizedSource.contains(normalizedAlias) else { continue }
+                let escapedAlias = NSRegularExpression.escapedPattern(for: normalizedAlias)
+                let pattern = "(?<![\\\\p{L}\\\\p{N}])" + escapedAlias + "(?![\\\\p{L}\\\\p{N}])"
+                guard let expression = try? NSRegularExpression(pattern: pattern),
+                      expression.firstMatch(in: normalizedSource, range: NSRange(normalizedSource.startIndex..., in: normalizedSource)) != nil else { continue }
                 return (reference.maker, reference.note, alias)
             }
             return nil
