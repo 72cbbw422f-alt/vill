@@ -19,6 +19,9 @@ jobs:
           xcodebuild -version
           xcodebuild -list -project Antikspanaren.xcodeproj
 
+      - name: Generate app icon
+        run: swift scripts/generate_app_icon.swift
+
       - name: Build iOS Simulator target
         run: |
           xcodebuild \
