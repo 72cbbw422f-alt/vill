@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import UIKit
+import Vision
 
 struct ScannerView: View {
     @EnvironmentObject private var collection: CollectionStore
@@ -8,6 +9,9 @@ struct ScannerView: View {
     @State private var image: UIImage?
     @State private var showingCamera = false
     @State private var showingSaveForm = false
+    @State private var isRecognizingText = false
+    @State private var recognizedText = ""
+    @State private var recognitionError: String?
 
     var body: some View {
         NavigationStack {
@@ -80,10 +84,30 @@ struct ScannerView: View {
                                     guard let data = try? await item?.loadTransferable(type: Data.self),
                                           let selectedImage = UIImage(data: data) else { return }
                                     image = selectedImage
+                                    recognizedText = ""
+                                    recognitionError = nil
                                 }
                             }
 
                             if image != nil {
+                                Button(action: recognizeText) {
+                                    HStack(spacing: 9) {
+                                        if isRecognizingText {
+                                            ProgressView().tint(AntiqueTheme.parchment)
+                                        } else {
+                                            Image(systemName: "text.viewfinder")
+                                        }
+                                        Text(isRecognizingText ? "Läser text …" : "Läs stämplar och text")
+                                    }
+                                    .font(.system(size: 16, weight: .medium, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.parchment)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(15)
+                                    .background(AntiqueTheme.walnut)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                }
+                                .disabled(isRecognizingText)
+
                                 Button {
                                     showingSaveForm = true
                                 } label: {
@@ -101,7 +125,32 @@ struct ScannerView: View {
                             }
                         }
 
-                        Text("Försök gärna få med stämplar, signaturer och eventuella skador. Du kan spara bilden med egna anteckningar i din samling.")
+                        if !recognizedText.isEmpty {
+                            VStack(alignment: .leading, spacing: 9) {
+                                Text("TEXT SOM KUNDE LÄSAS")
+                                    .font(.system(size: 11, weight: .semibold, design: .serif))
+                                    .tracking(1.2)
+                                    .foregroundStyle(AntiqueTheme.brass)
+                                Text(recognizedText)
+                                    .font(.system(size: 15, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.ink)
+                                    .textSelection(.enabled)
+                                Text("Kontrollera alltid avläsningen mot originalbilden. Stämplar och äldre handskrift kan misstolkas.")
+                                    .font(.system(size: 12, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.mutedInk)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(15)
+                            .background(AntiqueTheme.parchment.opacity(0.8))
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
+                        } else if let recognitionError {
+                            Text(recognitionError)
+                                .font(.system(size: 13, design: .serif))
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
+                        Text("Försök gärna få med stämplar, signaturer och eventuella skador. Textigenkänningen sker på telefonen och är ett hjälpmedel – inte en verifierad identifiering.")
                             .font(.system(size: 13, design: .serif))
                             .foregroundStyle(AntiqueTheme.mutedInk)
                             .multilineTextAlignment(.center)
@@ -116,10 +165,47 @@ struct ScannerView: View {
             }
             .sheet(isPresented: $showingSaveForm) {
                 if let image {
-                    SaveAntiqueSheet(image: image)
+                    SaveAntiqueSheet(image: image, recognizedText: recognizedText)
                         .environmentObject(collection)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
+                }
+            }
+        }
+    }
+
+    private func recognizeText() {
+        guard let image, let cgImage = image.cgImage else {
+            recognitionError = "Bilden kunde inte läsas. Prova att välja eller ta en ny bild."
+            return
+        }
+
+        isRecognizingText = true
+        recognitionError = nil
+        recognizedText = ""
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.usesLanguageCorrection = true
+            request.recognitionLanguages = ["sv-SE", "en-US"]
+
+            do {
+                try VNImageRequestHandler(cgImage: cgImage).perform([request])
+                let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+                let result = lines.joined(separator: "\n")
+
+                DispatchQueue.main.async {
+                    recognizedText = result
+                    if result.isEmpty {
+                        recognitionError = "Ingen tydlig text hittades. Prova en närbild med bättre ljus och skärpa."
+                    }
+                    isRecognizingText = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    recognitionError = "Texten kunde inte läsas just nu. Försök igen med en ny bild."
+                    isRecognizingText = false
                 }
             }
         }
@@ -130,6 +216,7 @@ private struct SaveAntiqueSheet: View {
     @EnvironmentObject private var collection: CollectionStore
     @Environment(\.dismiss) private var dismiss
     let image: UIImage
+    let recognizedText: String
 
     @State private var title = ""
     @State private var maker = ""
@@ -160,6 +247,11 @@ private struct SaveAntiqueSheet: View {
                                 .padding(12)
                                 .background(AntiqueTheme.parchment.opacity(0.7))
                                 .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
+                        }
+                        if !recognizedText.isEmpty {
+                            Text("Den avlästa texten läggs till automatiskt i anteckningarna när föremålet sparas.")
+                                .font(.system(size: 12, design: .serif))
+                                .foregroundStyle(AntiqueTheme.mutedInk)
                         }
                         if let errorMessage {
                             Text(errorMessage).font(.system(size: 13, design: .serif)).foregroundStyle(.red)
@@ -198,8 +290,17 @@ private struct SaveAntiqueSheet: View {
     }
 
     private func save() {
+        let cleanNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        let combinedNotes: String
+        if recognizedText.isEmpty {
+            combinedNotes = cleanNotes
+        } else {
+            let extracted = "Text avläst från bilden (kontrollera mot originalet):\n\(recognizedText)"
+            combinedNotes = cleanNotes.isEmpty ? extracted : cleanNotes + "\n\n" + extracted
+        }
+
         do {
-            try collection.add(title: title, maker: maker, notes: notes, purchasePrice: purchasePrice, image: image)
+            try collection.add(title: title, maker: maker, notes: combinedNotes, purchasePrice: purchasePrice, image: image)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
