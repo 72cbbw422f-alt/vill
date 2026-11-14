@@ -224,8 +224,9 @@ struct ScannerView: View {
 
                 DispatchQueue.main.async {
                     recognizedText = result
-                    if result.isEmpty {
-                        recognitionError = "Ingen tydlig text hittades. Prova en närbild med bättre ljus och skärpa."
+                    imageClues = Array(clues)
+                    if result.isEmpty && clues.isEmpty {
+                        recognitionError = "Ingen tydlig text eller bildkategori hittades. Prova en ny bild med bättre ljus."
                     }
                     isRecognizingText = false
                 }
