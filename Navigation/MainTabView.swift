@@ -6,6 +6,7 @@ enum AppTab: Hashable {
 
 struct MainTabView: View {
     @State private var selection: AppTab = .home
+    @StateObject private var collection = CollectionStore()
 
     var body: some View {
         TabView(selection: $selection) {
@@ -25,6 +26,7 @@ struct MainTabView: View {
                 .tabItem { Label("Profil", systemImage: "person.crop.circle") }
                 .tag(AppTab.profile)
         }
+        .environmentObject(collection)
         .tint(AntiqueTheme.brass)
     }
 }
