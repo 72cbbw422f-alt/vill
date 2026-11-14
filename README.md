@@ -47,7 +47,7 @@ Antikspanaren/
 - [x] Radera föremål och dess lokala bilder
 - [x] Bakåtkompatibel avkodning av tidigare sparade föremål
 - [x] Radera enskilda prisreferenser
-- [ ] Redigera enskilda prisreferenser
+- [x] Redigera enskilda prisreferenser
 - [ ] Bildanalys och AI-identifiering
 - [ ] Källbelagd automatisk värdering
 - [ ] Xcode-projekt och bygg-/testpipeline
