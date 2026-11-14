@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UIKit
 
 struct ScannerView: View {
     @State private var selectedPhoto: PhotosPickerItem?
