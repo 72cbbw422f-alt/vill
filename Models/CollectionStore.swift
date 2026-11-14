@@ -153,6 +153,20 @@ final class CollectionStore: ObservableObject {
         }
     }
 
+    func removeAdditionalImage(_ filename: String, from itemID: UUID) throws {
+        guard let index = items.firstIndex(where: { $0.id == itemID }),
+              items[index].additionalImageFileNames.contains(filename) else { return }
+        let previous = items[index]
+        items[index].additionalImageFileNames.removeAll { $0 == filename }
+        do {
+            try persist()
+            try? fileManager.removeItem(at: imagesFolder().appendingPathComponent(filename))
+        } catch {
+            items[index] = previous
+            throw error
+        }
+    }
+
     func delete(_ item: SavedAntique) throws {
         guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
         let removed = items.remove(at: index)
