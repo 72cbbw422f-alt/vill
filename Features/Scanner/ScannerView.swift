@@ -603,7 +603,7 @@ struct ScannerView: View {
             for alias in reference.aliases {
                 let normalizedAlias = alias.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
                 let escapedAlias = NSRegularExpression.escapedPattern(for: normalizedAlias)
-                let pattern = "(?<![\\\\p{L}\\\\p{N}])" + escapedAlias + "(?![\\\\p{L}\\\\p{N}])"
+                let pattern = "(?<![\\p{L}\\p{N}])" + escapedAlias + "(?![\\p{L}\\p{N}])"
                 guard let expression = try? NSRegularExpression(pattern: pattern),
                       expression.firstMatch(in: normalizedSource, range: NSRange(normalizedSource.startIndex..., in: normalizedSource)) != nil else { continue }
                 return (reference.maker, reference.note, alias)
