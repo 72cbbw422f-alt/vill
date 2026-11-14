@@ -35,12 +35,16 @@ Antikspanaren/
 - [x] Antikt färg- och typografisystem
 - [x] Startsida med ingång till skanning
 - [x] Välja foto från bildbiblioteket
+- [x] Ta foto med enhetens kamera
+- [x] Gemensam förhandsvisning för importerade och fotograferade bilder
 - [x] Grundmodeller för föremål och värderingsunderlag
-- [ ] Kamerafångst
 - [ ] Bildanalys och AI-identifiering
 - [ ] Källbelagd värdering
 - [ ] Lokal lagring och samling
 - [ ] Xcode-projekt och bygg-/testpipeline
+
+## Integritet och behörigheter
+När Xcode-projektet sätts upp måste appens `Info.plist` innehålla `NSCameraUsageDescription` med en tydlig svensk förklaring till varför kameran används. Bildbiblioteket hanteras via PhotosPicker och kräver inte generell åtkomst till hela bildbiblioteket.
 
 ## Kvalitetsprinciper
 1. AI-förslag får aldrig presenteras som verifierade fakta.
