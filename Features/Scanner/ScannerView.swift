@@ -229,7 +229,6 @@ struct ScannerView: View {
             request.recognitionLanguages = ["sv-SE", "en-US"]
 
             let classification = VNClassifyImageRequest()
-            classification.imageCropAndScaleOption = .centerCrop
 
             do {
                 try VNImageRequestHandler(cgImage: cgImage).perform([request, classification])
