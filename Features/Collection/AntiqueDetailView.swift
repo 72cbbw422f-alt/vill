@@ -89,9 +89,14 @@ struct AntiqueDetailView: View {
                 }
             }
         }
-        .sheet(item: $exportedPDF) { url in
-            ActivityShareSheet(activityItems: [url])
-                .presentationDetents([.medium, .large])
+        .sheet(isPresented: Binding(
+            get: { exportedPDF != nil },
+            set: { if !$0 { exportedPDF = nil } }
+        )) {
+            if let url = exportedPDF {
+                ActivityShareSheet(activityItems: [url])
+                    .presentationDetents([.medium, .large])
+            }
         }
         .confirmationDialog("Radera föremålet ur samlingen?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
             Button("Radera", role: .destructive, action: deleteItem)
