@@ -33,10 +33,11 @@ Antikspanaren/
 - [x] SwiftUI-appens startpunkt
 - [x] Navigation: Hem, Skanna, Samling och Profil
 - [x] Antikt färg- och typografisystem
-- [x] Startsida med ingång till skanning
-- [x] Välja foto från bildbiblioteket
-- [x] Ta foto med enhetens kamera
-- [x] Gemensam förhandsvisning för importerade och fotograferade bilder
+- [x] Omarbetad startsida med tydlig väg in i undersökningen
+- [x] Scanner med kamera och bildbibliotek
+- [x] Gemensam bildförhandsvisning
+- [x] Samlingsvy med kataloginspirerad tomvy
+- [x] Informationsvy med principer för källkritik och värdering
 - [x] Grundmodeller för föremål och värderingsunderlag
 - [ ] Bildanalys och AI-identifiering
 - [ ] Källbelagd värdering
@@ -54,4 +55,4 @@ När Xcode-projektet sätts upp måste appens `Info.plist` innehålla `NSCameraU
 5. Föremålets skick, proveniens och eventuella renoveringar ska vägas in.
 
 ## Byggstatus
-Detta repo innehåller SwiftUI-källkod. Ett komplett Xcode-projekt, signering och IPA-export återstår. Rekommenderad bas är iOS 17 eller senare.
+Detta repo innehåller SwiftUI-källkod. Ett komplett Xcode-projekt, signering och IPA-export återstår. Källändringarna är ännu inte verifierade genom en Xcode-build. Rekommenderad bas är iOS 17 eller senare.
