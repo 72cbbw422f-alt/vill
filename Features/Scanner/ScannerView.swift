@@ -493,12 +493,13 @@ struct ScannerView: View {
                 Text(primaryClue)
                     .font(AntiqueTheme.title(25))
                     .foregroundStyle(AntiqueTheme.forest)
-                Text("Bildmodellen känner igen en generell bildkategori. Det är en ledtråd om motivet – inte en säker identifiering av föremålet.")
+                Text("Bildmodellen har gett en preliminär motiv- eller objekthypotes. Kontrollera den mot föremålets form, konstruktion och detaljer innan du använder den som beskrivning.")
                     .font(.system(size: 13, design: .serif))
                     .foregroundStyle(AntiqueTheme.mutedInk)
+                reportRow("Riktad granskning", inspectionSummary(for: primaryClue))
             }
 
-            reportRow("Material och tillverkare", "Kan inte fastställas säkert från den här generella bildanalysen.")
+            reportRow("Material och tillverkare", "Inte fastställda. Material kräver kontroll av yta, vikt, ljud, genomlysning eller annan lämplig undersökning. Tillverkare kräver jämförbar märkning eller dokumentation.")
             reportRow("Ålder och ursprung", "Kräver märkningar, konstruktion, materialdetaljer och jämförelser med dokumenterade föremål.")
             reportRow("Marknadsvärde", "Ingen värdering görs utan verifierbara jämförelseförsäljningar.")
 
@@ -630,8 +631,37 @@ struct ScannerView: View {
         }
     }
 
+    private func inspectionSummary(for clue: String) -> String {
+        let category = clue.lowercased()
+        if category.contains("figurin") || category.contains("skulptur") || category.contains("djurmotiv") || category.contains("hästmotiv") || category.contains("hundmotiv") || category.contains("kattmotiv") || category.contains("fågelmotiv") {
+            return "Granska modelleringen av huvud, ben och detaljer, hur figuren står eller är monterad samt om den är ihålig eller massiv. Undersök undersida, eventuella gjutskarvar, bemålning och signatur."
+        }
+        if category.contains("glas") || category.contains("flaska") {
+            return "Granska mynning, botten, sömmar, luftbubblor och eventuell slipning eller gravyr. Fotografera mot både ljus och mörk bakgrund."
+        }
+        if category.contains("keramik") || category.contains("porslin") || category.contains("vas") || category.contains("skål") || category.contains("tallrik") || category.contains("kopp") || category.contains("kruk") || category.contains("servis") {
+            return "Granska gods, glasyr, dekor, fotring och undersida. Leta efter stämpel, drej- eller formspår, krackelering, nagg och lagningar."
+        }
+        if category.contains("möbel") || category.contains("stol") || category.contains("bord") || category.contains("skåp") {
+            return "Granska sammanfogningar, träslag, fanér, beslag, lådor och undersida. Leta efter etiketter, märkningar och senare reparationer."
+        }
+        if category.contains("målning") || category.contains("bild") || category.contains("tavla") {
+            return "Granska signatur, färgskikt, underlag, ram och baksida. Fotografera etiketter och eventuella verkstads- eller utställningsmärken."
+        }
+        if category.contains("klock") || category.contains("ur") {
+            return "Granska urtavla, visare, boett, serienummer och verk. Öppna inte boetten om det riskerar att skada föremålet."
+        }
+        if category.contains("smycke") || category.contains("ring") || category.contains("brosch") {
+            return "Granska infattningar, lås, lödningar och stämplar. Metallhalt och äkthet kan inte avgöras säkert enbart från fotografi."
+        }
+        return "Dokumentera form, konstruktion, materialdetaljer och märkningar. Ta bilder av fram- och baksida samt undersida innan du drar slutsatser."
+    }
+
     private func inspectionSuggestions(for clue: String?) -> [String] {
         let category = clue?.lowercased() ?? ""
+        if category.contains("figurin") || category.contains("skulptur") || category.contains("djurmotiv") || category.contains("hästmotiv") || category.contains("hundmotiv") || category.contains("kattmotiv") || category.contains("fågelmotiv") {
+            return ["Fotografera figuren framifrån, från sidan och bakifrån", "Visa undersidan, eventuell signatur och gjut- eller formskarvar", "Ta närbilder av bemålning, slitage, sprickor och lagningar"]
+        }
         if category.contains("glas") || category.contains("flaska") {
             return ["Fotografera eventuell signatur eller etikett nära foten", "Visa botten, mynning och glastjocklek", "Ta bilder i både genomfallande och snett sidoljus"]
         }
