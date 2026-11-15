@@ -309,7 +309,7 @@ struct ScannerView: View {
     }
 
     private func compareWithCollection() {
-        guard let image else { return }
+        guard let image, let queryCGImage = image.cgImage else { return }
         let candidates = collection.items.compactMap { item -> (String, UIImage)? in
             guard let candidateImage = collection.image(for: item) else { return nil }
             return (item.title, candidateImage)
@@ -325,7 +325,7 @@ struct ScannerView: View {
             let queryRequest = VNGenerateImageFeaturePrintRequest()
             queryRequest.imageCropAndScaleOption = .centerCrop
             do {
-                try VNImageRequestHandler(cgImage: image.cgImage ?? image.preparingForDisplay()!.cgImage!).perform([queryRequest])
+                try VNImageRequestHandler(cgImage: queryCGImage).perform([queryRequest])
                 guard let queryPrint = queryRequest.results?.first else { throw NSError(domain: "Antikspanaren", code: 1) }
                 for (title, candidate) in candidates {
                     guard let cgImage = candidate.cgImage else { continue }
