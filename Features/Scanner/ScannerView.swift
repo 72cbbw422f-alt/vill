@@ -13,6 +13,7 @@ struct ScannerView: View {
     @State private var recognizedText = ""
     @State private var recognitionError: String?
     @State private var imageClues: [String] = []
+    @State private var imageClueDetails: [String] = []
     @State private var primaryClue: String?
     @State private var rawMarkingText = ""
     @State private var museumSearchText = ""
@@ -109,6 +110,7 @@ struct ScannerView: View {
                                     image = selectedImage
                                     recognizedText = ""
                                     imageClues = []
+                                    imageClueDetails = []
                                     primaryClue = nil
                                     rawMarkingText = ""
                                     recognitionError = nil
@@ -165,7 +167,7 @@ struct ScannerView: View {
                                     .font(.system(size: 11, weight: .semibold, design: .serif))
                                     .tracking(1.2)
                                     .foregroundStyle(AntiqueTheme.brass)
-                                ForEach(Array(imageClues.enumerated()), id: \.offset) { entry in
+                                ForEach(Array(imageClueDetails.enumerated()), id: \.offset) { entry in
                                     Label(entry.element, systemImage: "sparkle.magnifyingglass")
                                         .font(.system(size: 14, design: .serif))
                                         .foregroundStyle(AntiqueTheme.ink)
@@ -222,6 +224,7 @@ struct ScannerView: View {
                 guard newImage != nil else { return }
                 recognizedText = ""
                 imageClues = []
+                imageClueDetails = []
                 primaryClue = nil
                 rawMarkingText = ""
                 recognitionError = nil
@@ -626,7 +629,10 @@ struct ScannerView: View {
 
     private func inspectionSuggestions(for clue: String?) -> [String] {
         let category = clue?.lowercased() ?? ""
-        if category.contains("vas") || category.contains("keramik") || category.contains("porslin") || category.contains("skål") || category.contains("tallrik") || category.contains("kopp") {
+        if category.contains("glas") || category.contains("flaska") {
+            return ["Fotografera eventuell signatur eller etikett nära foten", "Visa botten, mynning och glastjocklek", "Ta bilder i både genomfallande och snett sidoljus"]
+        }
+        if category.contains("vas") || category.contains("keramik") || category.contains("porslin") || category.contains("skål") || category.contains("tallrik") || category.contains("kopp") || category.contains("kruk") || category.contains("servis") {
             return ["Fotografera undersidan rakt framifrån", "Ta närbild på stämplar, signaturer och etiketter", "Visa eventuell krackelering, nagg och lagningar"]
         }
         if category.contains("möbel") || category.contains("stol") || category.contains("bord") || category.contains("skåp") {
@@ -654,6 +660,7 @@ struct ScannerView: View {
         recognitionError = nil
         recognizedText = ""
         imageClues = []
+        imageClueDetails = []
         primaryClue = nil
         rawMarkingText = ""
 
@@ -680,14 +687,18 @@ struct ScannerView: View {
                 let rawLines = (markingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let rawResult = rawLines.joined(separator: "\n")
                 let rankedResults = (classification.results ?? [])
-                    .filter { $0.confidence >= 0.12 }
+                    .filter { $0.confidence >= 0.08 }
                     .prefix(5)
                 let clues = rankedResults.map { Self.localizedClue($0.identifier) }
+                let clueDetails = rankedResults.map {
+                    "\(Self.localizedClue($0.identifier)) · modellens poäng \(Int(($0.confidence * 100).rounded())) %"
+                }
                 let leadingClue = rankedResults.first.map { Self.localizedClue($0.identifier) }
 
                 DispatchQueue.main.async {
                     recognizedText = result
                     imageClues = Array(clues)
+                    imageClueDetails = Array(clueDetails)
                     primaryClue = leadingClue
                     rawMarkingText = rawResult
                     if result.isEmpty && rawResult.isEmpty && clues.isEmpty {
