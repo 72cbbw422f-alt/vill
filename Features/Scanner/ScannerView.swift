@@ -163,7 +163,7 @@ struct ScannerView: View {
 
                         if !imageClues.isEmpty {
                             VStack(alignment: .leading, spacing: 9) {
-                                Text("VISUELLA LEDTRÅDAR")
+                                Text("BILDMODELLENS OBSERVATIONER")
                                     .font(.system(size: 11, weight: .semibold, design: .serif))
                                     .tracking(1.2)
                                     .foregroundStyle(AntiqueTheme.brass)
@@ -172,7 +172,7 @@ struct ScannerView: View {
                                         .font(.system(size: 14, design: .serif))
                                         .foregroundStyle(AntiqueTheme.ink)
                                 }
-                                Text("Detta är breda bildkategorier från en generell modell. De fastställer inte föremålets ålder, äkthet, material eller tillverkare.")
+                                Text("Detta är motiv- och objektledtrådar från en generell bildmodell. De är inte en identifiering och fastställer inte material, ålder, äkthet eller tillverkare.")
                                     .font(.system(size: 12, design: .serif))
                                     .foregroundStyle(AntiqueTheme.mutedInk)
                             }
@@ -686,14 +686,18 @@ struct ScannerView: View {
                 let result = lines.joined(separator: "\n")
                 let rawLines = (markingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let rawResult = rawLines.joined(separator: "\n")
+                // Keep only useful object and motif clues. Vision confidence is
+                // not an identification probability, so never present it as one.
                 let rankedResults = (classification.results ?? [])
                     .filter { $0.confidence >= 0.08 }
-                    .prefix(5)
-                let clues = rankedResults.map { Self.localizedClue($0.identifier) }
-                let clueDetails = rankedResults.map {
-                    "\(Self.localizedClue($0.identifier)) · modellens poäng \(Int(($0.confidence * 100).rounded())) %"
-                }
-                let leadingClue = rankedResults.first.map { Self.localizedClue($0.identifier) }
+                    .compactMap { result -> (label: String, confidence: Float)? in
+                        guard let label = Self.localizedClue(result.identifier) else { return nil }
+                        return (label, result.confidence)
+                    }
+                    .prefix(4)
+                let clues = rankedResults.map { $0.label }
+                let clueDetails = rankedResults.map { $0.label }
+                let leadingClue = rankedResults.first?.label
 
                 DispatchQueue.main.async {
                     recognizedText = result
@@ -715,21 +719,24 @@ struct ScannerView: View {
         }
     }
 
-    private static func localizedClue(_ identifier: String) -> String {
+    private static func localizedClue(_ identifier: String) -> String? {
         let key = identifier.lowercased()
         let translations: [String: String] = [
             "vase": "Vas", "pot": "Kruk", "bowl": "Skål", "plate": "Tallrik",
             "cup": "Kopp", "mug": "Mugg", "teapot": "Tekanna", "bottle": "Flaska",
             "glass": "Glas", "clock": "Klocka", "watch": "Armbandsur", "lamp": "Lampa",
             "chair": "Stol", "table": "Bord", "cabinet": "Skåp", "painting": "Målning",
-            "picture": "Bild", "book": "Bok", "sculpture": "Skulptur", "figurine": "Figurin",
-            "jewelry": "Smycke", "ring": "Ring", "brooch": "Brosch", "coin": "Mynt",
+            "picture": "Bildmotiv", "book": "Bok", "sculpture": "Skulptur",
+            "figurine": "Figurin", "statuette": "Figurin", "animal": "Djurmotiv",
+            "horse": "Hästmotiv", "dog": "Hundmotiv", "cat": "Kattmotiv",
+            "bird": "Fågelmotiv", "fish": "Fiskmotiv", "jewelry": "Smycke",
+            "ring": "Ring", "brooch": "Brosch", "coin": "Mynt",
             "furniture": "Möbel", "wood": "Träföremål", "metal": "Metallföremål",
-            "ceramic": "Keramik", "porcelain": "Porslin",
-            "tableware": "Bordsservis", "utensil": "Redskap", "dishware": "Porslin och servis",
+            "ceramic": "Keramik", "porcelain": "Porslin", "tableware": "Bordsservis",
+            "utensil": "Redskap", "dishware": "Porslin och servis",
             "crockery": "Servis", "cutlery": "Bestick", "kitchenware": "Köksföremål"
         ]
-        return translations[key] ?? identifier.replacingOccurrences(of: "_", with: " ").capitalized
+        return translations[key]
     }
 }
 
