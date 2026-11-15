@@ -21,6 +21,8 @@ struct ScannerView: View {
     @State private var museumResults: [MetMuseumObject] = []
     @State private var isSearchingMuseums = false
     @State private var museumSearchError: String?
+    @State private var collectionMatches: [CollectionImageMatch] = []
+    @State private var isComparingCollection = false
 
     var body: some View {
         NavigationStack {
@@ -159,6 +161,7 @@ struct ScannerView: View {
 
                         if image != nil {
                             museumSearchPanel
+                            collectionComparisonPanel
                         }
 
                         if !imageClues.isEmpty {
@@ -251,6 +254,103 @@ struct ScannerView: View {
         }
     }
 
+
+    private var collectionComparisonPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("JÄMFÖR MED DIN SAMLING")
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .tracking(1.2)
+                .foregroundStyle(AntiqueTheme.brass)
+            Text("Jämför bildens visuella helhetsintryck med föremål du redan har sparat. Det kan hitta liknande former och motiv – inte bevisa att det är samma modell eller tillverkare.")
+                .font(.system(size: 13, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+            Button(action: compareWithCollection) {
+                HStack(spacing: 8) {
+                    if isComparingCollection {
+                        ProgressView().tint(AntiqueTheme.parchment)
+                    } else {
+                        Image(systemName: "square.stack.3d.up")
+                    }
+                    Text(isComparingCollection ? "Jämför med samlingen …" : "Jämför med mina sparade föremål")
+                }
+                .font(.system(size: 15, weight: .medium, design: .serif))
+                .foregroundStyle(AntiqueTheme.parchment)
+                .frame(maxWidth: .infinity)
+                .padding(13)
+                .background(AntiqueTheme.forest)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+            }
+            .disabled(isComparingCollection || collection.items.isEmpty)
+            if collection.items.isEmpty {
+                Text("Spara några föremål i samlingen för att kunna jämföra dem här.")
+                    .font(.system(size: 12, design: .serif))
+                    .foregroundStyle(AntiqueTheme.mutedInk)
+            }
+            ForEach(collectionMatches) { match in
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(match.title)
+                        .font(.system(size: 15, weight: .medium, design: .serif))
+                        .foregroundStyle(AntiqueTheme.forest)
+                    Text("Visuell likhet: närmaste bildmatch i din samling")
+                        .font(.system(size: 11, design: .serif))
+                        .foregroundStyle(AntiqueTheme.mutedInk)
+                }
+            }
+            if !collectionMatches.isEmpty {
+                Text("Matchningen bygger på bilddrag och är endast en lokal jämförelse. Den fastställer inte identitet, ålder eller proveniens.")
+                    .font(.system(size: 11, design: .serif))
+                    .foregroundStyle(AntiqueTheme.mutedInk)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(15)
+        .background(AntiqueTheme.parchment.opacity(0.8))
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
+    }
+
+    private func compareWithCollection() {
+        guard let image else { return }
+        let candidates = collection.items.compactMap { item -> (String, UIImage)? in
+            guard let candidateImage = collection.image(for: item) else { return nil }
+            return (item.title, candidateImage)
+        }
+        guard !candidates.isEmpty else {
+            collectionMatches = []
+            return
+        }
+        isComparingCollection = true
+        collectionMatches = []
+        DispatchQueue.global(qos: .userInitiated).async {
+            var matches: [(title: String, distance: Float)] = []
+            let queryRequest = VNGenerateImageFeaturePrintRequest()
+            queryRequest.imageCropAndScaleOption = .centerCrop
+            do {
+                try VNImageRequestHandler(cgImage: image.cgImage ?? image.preparingForDisplay()!.cgImage!).perform([queryRequest])
+                guard let queryPrint = queryRequest.results?.first else { throw NSError(domain: "Antikspanaren", code: 1) }
+                for (title, candidate) in candidates {
+                    guard let cgImage = candidate.cgImage else { continue }
+                    let request = VNGenerateImageFeaturePrintRequest()
+                    request.imageCropAndScaleOption = .centerCrop
+                    try VNImageRequestHandler(cgImage: cgImage).perform([request])
+                    guard let candidatePrint = request.results?.first else { continue }
+                    var distance: Float = 0
+                    try queryPrint.computeDistance(&distance, to: candidatePrint)
+                    matches.append((title, distance))
+                }
+                let sorted = matches.sorted { $0.distance < $1.distance }.prefix(3)
+                DispatchQueue.main.async {
+                    collectionMatches = sorted.map { CollectionImageMatch(title: $0.title, distance: $0.distance) }
+                    isComparingCollection = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    collectionMatches = []
+                    isComparingCollection = false
+                    recognitionError = "Bildjämförelsen kunde inte genomföras. Försök igen."
+                }
+            }
+        }
+    }
 
     private var sourceResearchPanel: some View {
         let hasSearchTerm = !sourceSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -776,6 +876,12 @@ struct ScannerView: View {
         ]
         return translations[key]
     }
+}
+
+private struct CollectionImageMatch: Identifiable {
+    let id = UUID()
+    let title: String
+    let distance: Float
 }
 
 private struct SaveAntiqueSheet: View {
