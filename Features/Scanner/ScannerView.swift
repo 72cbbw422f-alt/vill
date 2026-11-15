@@ -214,9 +214,12 @@ struct ScannerView: View {
                             .lineSpacing(3)
                     }
                     .padding(.horizontal, 22)
-                    .padding(.top, 8)
-                    .padding(.bottom, 28)
-                    .safeAreaPadding(.bottom, 82)
+                    .padding(.top, 16)
+                    .padding(.bottom, 36)
+                    // Keep scrolling content clear of the iOS status area and
+                    // the floating glass tab bar on newer iOS versions.
+                    .safeAreaPadding(.top, 12)
+                    .safeAreaPadding(.bottom, 132)
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
