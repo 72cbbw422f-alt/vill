@@ -216,10 +216,15 @@ struct ScannerView: View {
                     .padding(.horizontal, 22)
                     .padding(.top, 16)
                     .padding(.bottom, 36)
-                    // Keep scrolling content clear of the iOS status area and
-                    // the floating glass tab bar on newer iOS versions.
-                    .safeAreaPadding(.top, 12)
-                    .safeAreaPadding(.bottom, 132)
+                }
+                // Reserve real viewport space instead of padding the scroll
+                // content: this prevents the status bar and floating tab bar
+                // from visually covering report cards while scrolling.
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    Color.clear.frame(height: 8)
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    Color.clear.frame(height: 118)
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
