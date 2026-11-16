@@ -334,7 +334,7 @@ struct ScannerView: View {
                     guard let cgImage = candidate.cgImage else { continue }
                     let request = VNGenerateImageFeaturePrintRequest()
                     request.imageCropAndScaleOption = .centerCrop
-                    try VNImageRequestHandler(cgImage: cgImage).perform([request])
+                    try VNImageRequestHandler(cgImage: cgImage, orientation: CGImagePropertyOrientation(candidate.imageOrientation)).perform([request])
                     guard let candidatePrint = request.results?.first else { continue }
                     var distance: Float = 0
                     try queryPrint.computeDistance(&distance, to: candidatePrint)
