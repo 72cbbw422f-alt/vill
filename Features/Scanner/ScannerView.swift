@@ -225,12 +225,14 @@ struct ScannerView: View {
                 // content: this prevents the status bar and floating tab bar
                 // from visually covering report cards while scrolling.
                 .safeAreaInset(edge: .top, spacing: 0) {
-                    PaperBackground()
-                        .frame(height: 52)
+                    Color.clear
+                        .frame(height: 12)
+                        .background(AntiqueTheme.paper)
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    PaperBackground()
-                        .frame(height: 142)
+                    Color.clear
+                        .frame(height: 118)
+                        .background(AntiqueTheme.paper)
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
