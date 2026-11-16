@@ -817,15 +817,24 @@ struct ScannerView: View {
             markingRequest.usesLanguageCorrection = false
             markingRequest.recognitionLanguages = ["sv-SE", "en-US"]
 
+            // A dedicated lower-image pass helps capture maker marks commonly
+            // placed on the foot, base or reverse of ceramics and glass.
+            let baseMarkingRequest = VNRecognizeTextRequest()
+            baseMarkingRequest.recognitionLevel = .accurate
+            baseMarkingRequest.usesLanguageCorrection = false
+            baseMarkingRequest.recognitionLanguages = ["sv-SE", "en-US"]
+            baseMarkingRequest.regionOfInterest = CGRect(x: 0, y: 0, width: 1, height: 0.48)
+
             let classification = VNClassifyImageRequest()
 
             do {
                 let handler = VNImageRequestHandler(cgImage: cgImage)
-                try handler.perform([readingRequest, markingRequest, classification])
+                try handler.perform([readingRequest, markingRequest, baseMarkingRequest, classification])
                 let lines = (readingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let result = lines.joined(separator: "\n")
                 let rawLines = (markingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-                let rawResult = rawLines.joined(separator: "\n")
+                let baseLines = (baseMarkingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+                let rawResult = Array(NSOrderedSet(array: rawLines + baseLines)) as? [String] ?? rawLines
                 // Keep only useful object and motif clues. Vision confidence is
                 // not an identification probability, so never present it as one.
                 let rankedResults = (classification.results ?? [])
