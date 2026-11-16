@@ -263,7 +263,7 @@ struct ScannerView: View {
                 .font(.system(size: 11, weight: .semibold, design: .serif))
                 .tracking(1.2)
                 .foregroundStyle(AntiqueTheme.brass)
-            Text("Jämför bildens visuella helhetsintryck med föremål du redan har sparat. Det kan hitta liknande former och motiv – inte bevisa att det är samma modell eller tillverkare.")
+            Text("Jämför bildens visuella drag med sparade bilder. Resultatet är en sorterad bildlikhet, inte en identifiering. Olika föremål kan hamna nära varandra.")
                 .font(.system(size: 13, design: .serif))
                 .foregroundStyle(AntiqueTheme.mutedInk)
             Button(action: compareWithCollection) {
@@ -293,7 +293,7 @@ struct ScannerView: View {
                     Text(match.title)
                         .font(.system(size: 15, weight: .medium, design: .serif))
                         .foregroundStyle(AntiqueTheme.forest)
-                    Text("Visuell likhet: närmaste bildmatch i din samling")
+                    Text("Närmaste visuella bildträff i din samling – kontrollera själv om föremålen verkligen liknar varandra.")
                         .font(.system(size: 11, design: .serif))
                         .foregroundStyle(AntiqueTheme.mutedInk)
                 }
@@ -829,12 +829,12 @@ struct ScannerView: View {
                 // Keep only useful object and motif clues. Vision confidence is
                 // not an identification probability, so never present it as one.
                 let rankedResults = (classification.results ?? [])
-                    .filter { $0.confidence >= 0.08 }
+                    .filter { $0.confidence >= 0.10 }
                     .compactMap { result -> (label: String, confidence: Float)? in
                         guard let label = Self.localizedClue(result.identifier) else { return nil }
                         return (label, result.confidence)
                     }
-                    .prefix(4)
+                    .prefix(3)
                 let clues = rankedResults.map { $0.label }
                 let clueDetails = rankedResults.map { $0.label }
                 let leadingClue = rankedResults.first?.label
@@ -860,23 +860,30 @@ struct ScannerView: View {
     }
 
     private static func localizedClue(_ identifier: String) -> String? {
+        // Vision may return either a simple label or a hierarchical label
+        // such as "animal, mammal, horse". Match meaningful components.
         let key = identifier.lowercased()
-        let translations: [String: String] = [
-            "vase": "Vas", "pot": "Kruk", "bowl": "Skål", "plate": "Tallrik",
-            "cup": "Kopp", "mug": "Mugg", "teapot": "Tekanna", "bottle": "Flaska",
-            "glass": "Glas", "clock": "Klocka", "watch": "Armbandsur", "lamp": "Lampa",
-            "chair": "Stol", "table": "Bord", "cabinet": "Skåp", "painting": "Målning",
-            "picture": "Bildmotiv", "book": "Bok", "sculpture": "Skulptur",
-            "figurine": "Figurin", "statuette": "Figurin", "animal": "Djurmotiv",
-            "horse": "Hästmotiv", "dog": "Hundmotiv", "cat": "Kattmotiv",
-            "bird": "Fågelmotiv", "fish": "Fiskmotiv", "jewelry": "Smycke",
-            "ring": "Ring", "brooch": "Brosch", "coin": "Mynt",
-            "furniture": "Möbel", "wood": "Träföremål", "metal": "Metallföremål",
-            "ceramic": "Keramik", "porcelain": "Porslin", "tableware": "Bordsservis",
-            "utensil": "Redskap", "dishware": "Porslin och servis",
-            "crockery": "Servis", "cutlery": "Bestick", "kitchenware": "Köksföremål"
+        let terms: [(String, String)] = [
+            ("horse", "Hästmotiv"), ("equine", "Hästmotiv"),
+            ("dog", "Hundmotiv"), ("canine", "Hundmotiv"),
+            ("cat", "Kattmotiv"), ("feline", "Kattmotiv"),
+            ("bird", "Fågelmotiv"), ("fish", "Fiskmotiv"),
+            ("animal", "Djurmotiv"), ("figurine", "Figurin"),
+            ("statuette", "Figurin"), ("sculpture", "Skulptur"),
+            ("statue", "Skulptur"), ("vase", "Vas"), ("urn", "Urna"),
+            ("teapot", "Tekanna"), ("pitcher", "Kanna"), ("jug", "Kanna"),
+            ("bottle", "Flaska"), ("glass", "Glasföremål"),
+            ("porcelain", "Porslin"), ("ceramic", "Keramik"),
+            ("pottery", "Keramik"), ("bowl", "Skål"),
+            ("plate", "Tallrik"), ("cup", "Kopp"), ("mug", "Mugg"),
+            ("clock", "Klocka"), ("watch", "Armbandsur"),
+            ("lamp", "Lampa"), ("chair", "Stol"), ("table", "Bord"),
+            ("cabinet", "Skåp"), ("furniture", "Möbel"),
+            ("painting", "Målning"), ("artwork", "Konstverk"),
+            ("jewelry", "Smycke"), ("ring", "Ring"), ("brooch", "Brosch"),
+            ("coin", "Mynt"), ("book", "Bok")
         ]
-        return translations[key]
+        return terms.first(where: { key.contains($0.0) })?.1
     }
 }
 
