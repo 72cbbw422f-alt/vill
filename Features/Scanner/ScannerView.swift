@@ -839,7 +839,8 @@ struct ScannerView: View {
                 let result = lines.joined(separator: "\n")
                 let rawLines = (markingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let baseLines = (baseMarkingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-                let rawResult = Array(NSOrderedSet(array: rawLines + baseLines)) as? [String] ?? rawLines
+                let uniqueRawLines = Array(NSOrderedSet(array: rawLines + baseLines)) as? [String] ?? rawLines
+                let rawResult = uniqueRawLines.joined(separator: "\n")
                 // Keep only useful object and motif clues. Vision confidence is
                 // not an identification probability, so never present it as one.
                 let rankedResults = (classification.results ?? [])
