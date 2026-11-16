@@ -808,7 +808,6 @@ struct ScannerView: View {
         primaryClue = nil
         rawMarkingText = ""
 
-        let cgOrientation = CGImagePropertyOrientation(image.imageOrientation)
 
         DispatchQueue.global(qos: .userInitiated).async {
             let readingRequest = VNRecognizeTextRequest()
