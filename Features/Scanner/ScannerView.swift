@@ -203,7 +203,7 @@ struct ScannerView: View {
                             .padding(15)
                             .background(AntiqueTheme.parchment.opacity(0.8))
                             .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.5)))
-                        } else if imageClues.isEmpty, let recognitionError {
+                        } else if imageClues.isEmpty, collectionMatches.isEmpty, let recognitionError {
                             Text(recognitionError)
                                 .font(.system(size: 13, design: .serif))
                                 .foregroundStyle(.red)
@@ -224,7 +224,7 @@ struct ScannerView: View {
                 // content: this prevents the status bar and floating tab bar
                 // from visually covering report cards while scrolling.
                 .safeAreaInset(edge: .top, spacing: 0) {
-                    Color.clear.frame(height: 8)
+                    Color.clear.frame(height: 44)
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     Color.clear.frame(height: 118)
