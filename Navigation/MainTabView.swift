@@ -27,6 +27,10 @@ struct MainTabView: View {
                 .tag(AppTab.profile)
         }
         .environmentObject(collection)
+        // Use an opaque parchment tab-bar background. The default iOS glass
+        // material lets scrolling report text show through the floating bar.
+        .toolbarBackground(AntiqueTheme.paper, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
         .tint(AntiqueTheme.brass)
     }
 }
