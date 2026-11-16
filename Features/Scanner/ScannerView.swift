@@ -699,8 +699,8 @@ struct ScannerView: View {
             .joined(separator: "\\n")
         let normalizedSource = source.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
         let references: [(maker: String, aliases: [String], note: String, sourceTitle: String?, sourceURL: String?)] = [
-            ("Rörstrand", ["Rörstrand"], "Svensk porslinsfabrik grundad 1726. Rörstrands museum beskriver flera märkningsepoker: tidiga Stockholm/Rörstrand-märkningar, kronstämpeln från 1884 och ett krönt R från 2000. En OCR-träff på namnet daterar inte föremålet i sig.", "Rörstrand Museum – Stämplar", "https://rorstrand-museum.se/stamplar/", nil, nil),
-            ("Gustavsberg", ["Gustavsberg"], "Porslinsfabriken grundades 1825. Den klassiska ankarmärkningen infördes 1839. Kontrollera ankarets utformning och eventuell formgivar- eller modellmärkning mot föremålet.", "Gustafsbergs Porslinsfabrik – Historik", "https://gustafsberg.com/en/pages/om-oss", nil, nil),
+            ("Rörstrand", ["Rörstrand"], "Svensk porslinsfabrik grundad 1726. Rörstrands museum beskriver flera märkningsepoker: tidiga Stockholm/Rörstrand-märkningar, kronstämpeln från 1884 och ett krönt R från 2000. En OCR-träff på namnet daterar inte föremålet i sig.", "Rörstrand Museum – Stämplar", "https://rorstrand-museum.se/stamplar/"),
+            ("Gustavsberg", ["Gustavsberg"], "Porslinsfabriken grundades 1825. Den klassiska ankarmärkningen infördes 1839. Kontrollera ankarets utformning och eventuell formgivar- eller modellmärkning mot föremålet.", "Gustafsbergs Porslinsfabrik – Historik", "https://gustafsberg.com/en/pages/om-oss"),
             ("Gefle", ["Gefle"], "Namn som förekommer på svenskt porslin. OCR-träffen är endast en ledtråd; jämför hela stämpeln, dekor och föremålets form.", nil, nil),
             ("Upsala-Ekeby", ["Upsala-Ekeby", "Upsala Ekeby"], "Svensk keramik- och porslinstillverkare. Jämför hela märkningen, modell och dekor; OCR-träffen verifierar inte fabrikat.", nil, nil),
             ("Höganäs", ["Höganäs", "Hoganas"], "Namn förknippat med svensk keramik. Kontrollera om märkningen avser fabrik, ort eller senare återförsäljning.", nil, nil),
@@ -718,7 +718,7 @@ struct ScannerView: View {
             ("Arabia", ["Arabia"], "Finsk porslinstillverkare. Jämför fabriksmärkningens form och tidsvariant; ordet Arabia ensamt räcker inte för datering.", nil, nil),
             ("Royal Copenhagen", ["Royal Copenhagen"], "Dansk porslinstillverkare. Kontrollera kronstämpel och övriga underglasyrmärken.", nil, nil),
             ("Bing & Grøndahl", ["Bing & Grøndahl", "Bing & Grondahl", "Bing og Grondahl"], "Dansk porslinstillverkare. Jämför de tre tornen och stämpelns utformning.", nil, nil),
-            ("Holmegaard", ["Holmegaard"], "Danskt glasbruk. Kontrollera signatur, etikett och modell.")
+            ("Holmegaard", ["Holmegaard"], "Danskt glasbruk. Kontrollera signatur, etikett och modell.", nil, nil)
         ]
 
         return references.compactMap { reference in
