@@ -658,7 +658,7 @@ struct ScannerView: View {
                                 .foregroundStyle(AntiqueTheme.mutedInk)
                         }
                     }
-                    Text("Detta är namnträffar i bildens text – inte en verifierad attribuering. Kontrollera stämpelns utformning, placering och originalbild.")
+                    Text("Träffarna bygger på OCR-text och kan vara fellästa eller avse något annat än tillverkaren. Enstaka ortsnamn och korta bokstavskombinationer räcker inte som bevis. Kontrollera alltid hela stämpeln, placeringen och originalbilden.")
                         .font(.system(size: 11, design: .serif))
                         .foregroundStyle(AntiqueTheme.mutedInk)
                 }
@@ -696,11 +696,11 @@ struct ScannerView: View {
             ("Gefle", ["Gefle"], "Porslinsfabrik med koppling till Gefle Porslinsfabrik. Kontrollera stämpelvariant och dekor."),
             ("Upsala-Ekeby", ["Upsala-Ekeby", "Upsala Ekeby"], "Svensk keramik- och porslinstillverkare. Jämför logotyp, modell och dekor."),
             ("Höganäs", ["Höganäs", "Hoganas"], "Namn förknippat med svensk keramik. Kontrollera om märkningen avser fabrik, ort eller senare återförsäljning."),
-            ("Jie Gantofta", ["Jie Gantofta", "JIE"], "Svensk keramikproducent. Kontrollera att den korta märkningen verkligen är JIE och inte en del av annan text."),
+            ("Jie Gantofta", ["Jie Gantofta"], "Svensk keramikproducent. Enbart bokstäverna JIE räcker inte för säker identifiering; jämför hela logotypen och stämpelns utformning."),
             ("Nittsjö", ["Nittsjö", "Nittsjo"], "Svensk keramikproducent. Jämför stämpel, form och eventuell modellbeteckning."),
             ("Bo Fajans", ["Bo Fajans"], "Svensk fajans- och keramikproducent. Kontrollera stämpelvariant och dekor."),
-            ("Kosta", ["Kosta"], "Svenskt glasbruk. Kontrollera gravyr, etikett eller annan märkning innan attribuering."),
-            ("Boda", ["Boda"], "Svenskt glasbruk. Namnet ensamt räcker inte för att datera eller identifiera glaset."),
+            ("Kosta", ["Kosta Glasbruk"], "Svenskt glasbruk. En ensam OCR-träff på ortsnamnet Kosta är för tvetydig; kontrollera gravyr eller etikett."),
+            ("Boda", ["Boda Glasbruk"], "Svenskt glasbruk. En ensam OCR-träff på ordet Boda är för tvetydig; jämför hela märkningen."),
             ("Orrefors", ["Orrefors"], "Svenskt glasbruk. Jämför signatur, etikett och formgivarnamn."),
             ("Skruf", ["Skruf"], "Svenskt glasbruk. Kontrollera signatur och eventuell modellbeteckning."),
             ("Målerås", ["Målerås", "Maleras"], "Svenskt glasbruk. Kontrollera signatur, etikett och formgivare."),
