@@ -659,6 +659,11 @@ struct ScannerView: View {
                             Text("Träff i avläst märkning: “\\(match.matchedText)”")
                                 .font(.system(size: 11, design: .monospaced))
                                 .foregroundStyle(AntiqueTheme.mutedInk)
+                            if let sourceURL = match.sourceURL, let url = URL(string: sourceURL) {
+                                Link("Öppna källan: \\(match.sourceTitle ?? "referens")", destination: url)
+                                    .font(.system(size: 11, weight: .medium, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.forest)
+                            }
                         }
                     }
                     Text("Träffarna bygger på OCR-text och kan vara fellästa eller avse något annat än tillverkaren. Enstaka ortsnamn och korta bokstavskombinationer räcker inte som bevis. Kontrollera alltid hela stämpeln, placeringen och originalbilden.")
@@ -688,16 +693,16 @@ struct ScannerView: View {
         .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.65), lineWidth: 1))
     }
 
-    private var markingManufacturerMatches: [(maker: String, note: String, matchedText: String)] {
+    private var markingManufacturerMatches: [(maker: String, note: String, matchedText: String, sourceTitle: String?, sourceURL: String?)] {
         let source = [rawMarkingText, recognizedText]
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             .joined(separator: "\\n")
         let normalizedSource = source.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-        let references: [(maker: String, aliases: [String], note: String)] = [
-            ("Rörstrand", ["Rörstrand"], "Svensk porslins- och keramikproducent. Jämför stämpelns typografi och eventuell modell- eller dekorbeteckning."),
-            ("Gustavsberg", ["Gustavsberg"], "Svensk porslins- och keramikproducent. Studera även eventuell formgivarsignatur och godsstämpel."),
-            ("Gefle", ["Gefle"], "Porslinsfabrik med koppling till Gefle Porslinsfabrik. Kontrollera stämpelvariant och dekor."),
-            ("Upsala-Ekeby", ["Upsala-Ekeby", "Upsala Ekeby"], "Svensk keramik- och porslinstillverkare. Jämför logotyp, modell och dekor."),
+        let references: [(maker: String, aliases: [String], note: String, sourceTitle: String?, sourceURL: String?)] = [
+            ("Rörstrand", ["Rörstrand"], "Svensk porslinsfabrik grundad 1726. Rörstrands museum beskriver flera märkningsepoker: tidiga Stockholm/Rörstrand-märkningar, kronstämpeln från 1884 och ett krönt R från 2000. En OCR-träff på namnet daterar inte föremålet i sig.", "Rörstrand Museum – Stämplar", "https://rorstrand-museum.se/stamplar/"),
+            ("Gustavsberg", ["Gustavsberg"], "Porslinsfabriken grundades 1825. Den klassiska ankarmärkningen infördes 1839. Kontrollera ankarets utformning och eventuell formgivar- eller modellmärkning mot föremålet.", "Gustafsbergs Porslinsfabrik – Historik", "https://gustafsberg.com/en/pages/om-oss"),
+            ("Gefle", ["Gefle"], "Namn som förekommer på svenskt porslin. OCR-träffen är endast en ledtråd; jämför hela stämpeln, dekor och föremålets form."),
+            ("Upsala-Ekeby", ["Upsala-Ekeby", "Upsala Ekeby"], "Svensk keramik- och porslinstillverkare. Jämför hela märkningen, modell och dekor; OCR-träffen verifierar inte fabrikat."),
             ("Höganäs", ["Höganäs", "Hoganas"], "Namn förknippat med svensk keramik. Kontrollera om märkningen avser fabrik, ort eller senare återförsäljning."),
             ("Jie Gantofta", ["Jie Gantofta"], "Svensk keramikproducent. Enbart bokstäverna JIE räcker inte för säker identifiering; jämför hela logotypen och stämpelns utformning."),
             ("Nittsjö", ["Nittsjö", "Nittsjo"], "Svensk keramikproducent. Jämför stämpel, form och eventuell modellbeteckning."),
@@ -710,7 +715,7 @@ struct ScannerView: View {
             ("Iittala", ["Iittala"], "Finskt glas- och designvarumärke. Jämför etikett, signatur och formgivare."),
             ("Nuutajärvi", ["Nuutajärvi", "Nuutajarvi"], "Finskt glasbruk. Kontrollera etikett, signatur och modell."),
             ("Riihimäen Lasi", ["Riihimäen Lasi", "Riihimaen Lasi"], "Finskt glasbruk. Jämför märkning och föremålets form."),
-            ("Arabia", ["Arabia"], "Finsk porslinstillverkare. Jämför fabriksmärkningens form och tidsvariant."),
+            ("Arabia", ["Arabia"], "Finsk porslinstillverkare. Jämför fabriksmärkningens form och tidsvariant; ordet Arabia ensamt räcker inte för datering."),
             ("Royal Copenhagen", ["Royal Copenhagen"], "Dansk porslinstillverkare. Kontrollera kronstämpel och övriga underglasyrmärken."),
             ("Bing & Grøndahl", ["Bing & Grøndahl", "Bing & Grondahl", "Bing og Grondahl"], "Dansk porslinstillverkare. Jämför de tre tornen och stämpelns utformning."),
             ("Holmegaard", ["Holmegaard"], "Danskt glasbruk. Kontrollera signatur, etikett och modell.")
@@ -720,15 +725,14 @@ struct ScannerView: View {
             for alias in reference.aliases {
                 let normalizedAlias = alias.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
                 let escapedAlias = NSRegularExpression.escapedPattern(for: normalizedAlias)
-                let pattern = "(?<![\\p{L}\\p{N}])" + escapedAlias + "(?![\\p{L}\\p{N}])"
+                let pattern = "(?<![\\\\p{L}\\\\p{N}])" + escapedAlias + "(?![\\\\p{L}\\\\p{N}])"
                 guard let expression = try? NSRegularExpression(pattern: pattern),
                       expression.firstMatch(in: normalizedSource, range: NSRange(normalizedSource.startIndex..., in: normalizedSource)) != nil else { continue }
-                return (reference.maker, reference.note, alias)
+                return (reference.maker, reference.note, alias, reference.sourceTitle, reference.sourceURL)
             }
             return nil
         }
     }
-
     private func reportRow(_ heading: String, _ detail: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(heading.uppercased())
