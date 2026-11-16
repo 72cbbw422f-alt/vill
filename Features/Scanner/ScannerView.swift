@@ -656,11 +656,12 @@ struct ScannerView: View {
                             Text(match.note)
                                 .font(.system(size: 12, design: .serif))
                                 .foregroundStyle(AntiqueTheme.ink)
-                            Text("Träff i avläst märkning: “\\(match.matchedText)”")
+                            Text("Träff i avläst märkning: “\(match.matchedText)”")
                                 .font(.system(size: 11, design: .monospaced))
                                 .foregroundStyle(AntiqueTheme.mutedInk)
                             if let sourceURL = match.sourceURL, let url = URL(string: sourceURL) {
-                                Link("Öppna källan: \\(match.sourceTitle ?? "referens")", destination: url)
+                                let sourceLabel = match.sourceTitle ?? "referens"
+                                Link("Öppna källan: \(sourceLabel)", destination: url)
                                     .font(.system(size: 11, weight: .medium, design: .serif))
                                     .foregroundStyle(AntiqueTheme.forest)
                             }
