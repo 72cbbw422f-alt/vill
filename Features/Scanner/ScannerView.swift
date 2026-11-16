@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 import UIKit
 import Vision
+import ImageIO
 
 struct ScannerView: View {
     @EnvironmentObject private var collection: CollectionStore
@@ -327,7 +328,7 @@ struct ScannerView: View {
             let queryRequest = VNGenerateImageFeaturePrintRequest()
             queryRequest.imageCropAndScaleOption = .centerCrop
             do {
-                try VNImageRequestHandler(cgImage: queryCGImage).perform([queryRequest])
+                try VNImageRequestHandler(cgImage: queryCGImage, orientation: CGImagePropertyOrientation(image.imageOrientation)).perform([queryRequest])
                 guard let queryPrint = queryRequest.results?.first else { throw NSError(domain: "Antikspanaren", code: 1) }
                 for (title, candidate) in candidates {
                     guard let cgImage = candidate.cgImage else { continue }
@@ -804,6 +805,8 @@ struct ScannerView: View {
         primaryClue = nil
         rawMarkingText = ""
 
+        let cgOrientation = CGImagePropertyOrientation(image.imageOrientation)
+
         DispatchQueue.global(qos: .userInitiated).async {
             let readingRequest = VNRecognizeTextRequest()
             readingRequest.recognitionLevel = .accurate
@@ -828,7 +831,7 @@ struct ScannerView: View {
             let classification = VNClassifyImageRequest()
 
             do {
-                let handler = VNImageRequestHandler(cgImage: cgImage)
+                let handler = VNImageRequestHandler(cgImage: cgImage, orientation: cgOrientation)
                 try handler.perform([readingRequest, markingRequest, baseMarkingRequest, classification])
                 let lines = (readingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let result = lines.joined(separator: "\n")
@@ -893,6 +896,22 @@ struct ScannerView: View {
             ("coin", "Mynt"), ("book", "Bok")
         ]
         return terms.first(where: { key.contains($0.0) })?.1
+    }
+}
+
+private extension CGImagePropertyOrientation {
+    init(_ orientation: UIImage.Orientation) {
+        switch orientation {
+        case .up: self = .up
+        case .down: self = .down
+        case .left: self = .left
+        case .right: self = .right
+        case .upMirrored: self = .upMirrored
+        case .downMirrored: self = .downMirrored
+        case .leftMirrored: self = .leftMirrored
+        case .rightMirrored: self = .rightMirrored
+        @unknown default: self = .up
+        }
     }
 }
 
