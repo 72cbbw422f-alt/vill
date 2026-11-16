@@ -799,6 +799,7 @@ struct ScannerView: View {
             return
         }
 
+        let cgOrientation = Self.visionOrientation(for: image.imageOrientation)
         isRecognizingText = true
         recognitionError = nil
         recognizedText = ""
@@ -871,6 +872,20 @@ struct ScannerView: View {
                     isRecognizingText = false
                 }
             }
+        }
+    }
+
+    private static func visionOrientation(for orientation: UIImage.Orientation) -> CGImagePropertyOrientation {
+        switch orientation {
+        case .up: return .up
+        case .upMirrored: return .upMirrored
+        case .down: return .down
+        case .downMirrored: return .downMirrored
+        case .left: return .left
+        case .leftMirrored: return .leftMirrored
+        case .right: return .right
+        case .rightMirrored: return .rightMirrored
+        @unknown default: return .up
         }
     }
 
