@@ -573,30 +573,8 @@ private struct AddEvidenceSheet: View {
         }
     }
 
-    // Accept Swedish decimal commas and common thousands separators, but reject
-    // empty, malformed, zero and negative amounts before saving a price reference.
     private var normalizedAmount: String? {
-        let raw = amount
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let compact = raw
-            .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: "\u{00a0}", with: "")
-            .replacingOccurrences(of: "\u{202f}", with: "")
-
-        // Swedish input uses a decimal comma. Grouping separators are accepted
-        // only in correctly sized groups, so malformed values like 1.2,3 cannot
-        // silently turn into a different price.
-        let plainPattern = #"^[0-9]+(?:,[0-9]{1,2})?$"#
-        let groupedPattern = #"^[0-9]{1,3}(?:\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
-        let spacedPattern = #"^[0-9]{1,3}(?:[ \u{00a0}\u{202f}][0-9]{3})+(?:,[0-9]{1,2})?$"#
-        let isValidFormat = compact.range(of: plainPattern, options: .regularExpression) != nil
-            || compact.range(of: groupedPattern, options: .regularExpression) != nil
-            || raw.range(of: spacedPattern, options: .regularExpression) != nil
-        guard isValidFormat else { return nil }
-
-        return compact
-            .replacingOccurrences(of: ".", with: "")
-            .replacingOccurrences(of: ",", with: ".")
+        AntiquePriceInput.normalized(amount)
     }
 
     private var hasValidAmount: Bool {
@@ -840,5 +818,29 @@ private enum AntiqueCatalogPDF {
 
         try data.write(to: url, options: Data.WritingOptions.atomic)
         return url
+    }
+}
+
+private enum AntiquePriceInput {
+    /// Normalize Swedish currency input without silently reinterpreting malformed
+    /// grouping. Returns a decimal-point representation suitable for storage.
+    static func normalized(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let compact = trimmed
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "\u{00a0}", with: "")
+            .replacingOccurrences(of: "\u{202f}", with: "")
+
+        let plainPattern = #"^[0-9]+(?:,[0-9]{1,2})?$"#
+        let groupedPattern = #"^[0-9]{1,3}(?:\\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
+        let spacedPattern = #"^[0-9]{1,3}(?:[ \\u{00a0}\\u{202f}][0-9]{3})+(?:,[0-9]{1,2})?$"#
+        let valid = compact.range(of: plainPattern, options: .regularExpression) != nil
+            || compact.range(of: groupedPattern, options: .regularExpression) != nil
+            || trimmed.range(of: spacedPattern, options: .regularExpression) != nil
+        guard valid,
+              let decimal = Decimal(string: compact.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: "."), locale: Locale(identifier: "en_US_POSIX")),
+              decimal > 0 else { return nil }
+
+        return NSDecimalNumber(decimal: decimal).stringValue
     }
 }
