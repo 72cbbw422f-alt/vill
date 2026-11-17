@@ -595,6 +595,7 @@ private struct AddEvidenceSheet: View {
     @State private var modelDetails: String
     @State private var comparabilityNotes: String
     @State private var evidenceDate: Date
+    @State private var dateIsUnknown: Bool
 
     init(evidence: SavedPriceEvidence? = nil, onAdd: @escaping (SavedPriceEvidence) -> Void) {
         self.onAdd = onAdd
@@ -607,6 +608,7 @@ private struct AddEvidenceSheet: View {
         _modelDetails = State(initialValue: evidence?.modelDetails ?? "")
         _comparabilityNotes = State(initialValue: evidence?.comparabilityNotes ?? "")
         _evidenceDate = State(initialValue: evidence?.date ?? Date())
+        _dateIsUnknown = State(initialValue: evidence?.date == nil)
         _editingID = State(initialValue: evidence?.id)
     }
 
@@ -642,9 +644,14 @@ private struct AddEvidenceSheet: View {
                             .tint(AntiqueTheme.forest)
                         }
 
-                        DatePicker("Datum för prisuppgiften", selection: $evidenceDate, displayedComponents: .date)
+                        Toggle("Datum saknas", isOn: $dateIsUnknown)
                             .font(.system(size: 13, design: .serif))
                             .tint(AntiqueTheme.forest)
+                        if !dateIsUnknown {
+                            DatePicker("Datum för prisuppgiften", selection: $evidenceDate, displayedComponents: .date)
+                                .font(.system(size: 13, design: .serif))
+                                .tint(AntiqueTheme.forest)
+                        }
 
                         field("Länk till källan (om finns)", text: $url)
                         if !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !hasValidSourceURL {
@@ -680,7 +687,7 @@ private struct AddEvidenceSheet: View {
                         onAdd(SavedPriceEvidence(id: editingID ?? UUID(),
                                                  sourceName: sourceName.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  amount: normalizedAmount ?? amount.trimmingCharacters(in: .whitespacesAndNewlines),
-                                                 kind: kind, date: evidenceDate, url: url.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 kind: kind, date: dateIsUnknown ? nil : evidenceDate, url: url.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  itemCondition: itemCondition.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : itemCondition.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  modelDetails: modelDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : modelDetails.trimmingCharacters(in: .whitespacesAndNewlines),
