@@ -11,19 +11,57 @@ struct SavedPriceEvidence: Identifiable, Codable {
     var url: String
     var notes: String
 
-    enum EvidenceKind: String, Codable, CaseIterable, Identifiable {
+    enum EvidenceKind: Codable, CaseIterable, Identifiable {
         case realizedSale
         case askingPrice
         case auctionEstimate
         case expertOpinion
+        case unknown(String)
 
-        var id: String { rawValue }
+        static var allCases: [EvidenceKind] {
+            [.realizedSale, .askingPrice, .auctionEstimate, .expertOpinion]
+        }
+
+        var id: String {
+            switch self {
+            case .realizedSale: return "realizedSale"
+            case .askingPrice: return "askingPrice"
+            case .auctionEstimate: return "auctionEstimate"
+            case .expertOpinion: return "expertOpinion"
+            case .unknown(let rawValue): return "unknown-\\(rawValue)"
+            }
+        }
+
         var title: String {
             switch self {
             case .realizedSale: return "Klubbat slutpris"
             case .askingPrice: return "Begärt pris"
             case .auctionEstimate: return "Auktionsvärdering"
             case .expertOpinion: return "Expertbedömning"
+            case .unknown: return "Okänd prisuppgiftstyp"
+            }
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            switch rawValue {
+            case "realizedSale": self = .realizedSale
+            case "askingPrice": self = .askingPrice
+            case "auctionEstimate": self = .auctionEstimate
+            case "expertOpinion": self = .expertOpinion
+            default: self = .unknown(rawValue)
+            }
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .realizedSale: try container.encode("realizedSale")
+            case .askingPrice: try container.encode("askingPrice")
+            case .auctionEstimate: try container.encode("auctionEstimate")
+            case .expertOpinion: try container.encode("expertOpinion")
+            case .unknown(let rawValue): try container.encode(rawValue)
             }
         }
     }
