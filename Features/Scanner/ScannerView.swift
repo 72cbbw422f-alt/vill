@@ -811,7 +811,16 @@ struct ScannerView: View {
             ("Arabia", ["Arabia"], "Finsk porslinstillverkare. Fabriksmärkena har ändrats i flera omgångar; jämför hela logotypen, texten MADE IN FINLAND, färg och eventuell sifferkod. Ordet ARABIA ensamt räcker inte för datering.", "Arabia – översikt över fabriksmärken (PDF)", "https://finnishdesign.com/wp-content/uploads/2023/05/Arabia_factorymarkings-5185317.pdf"),
             ("Royal Copenhagen", ["Royal Copenhagen"], "Dansk porslinstillverkare. Kontrollera kronstämpel och övriga underglasyrmärken.", nil, nil),
             ("Bing & Grøndahl", ["Bing & Grøndahl", "Bing & Grondahl", "Bing og Grondahl"], "Dansk porslinstillverkare. Jämför de tre tornen och stämpelns utformning.", nil, nil),
-            ("Holmegaard", ["Holmegaard"], "Danskt glasbruk. Kontrollera signatur, etikett och modell.", nil, nil)
+            ("Holmegaard", ["Holmegaard"], "Danskt glasbruk. Kontrollera signatur, etikett och modell.", nil, nil),
+            ("Stig Lindberg", ["Stig Lindberg"], "Formgivarnamn förknippat med svensk keramik, porslin och industridesign. En namnsignatur kan vara svår att skilja från senare märkning eller återgivning; jämför signaturens utförande och föremålets modell.", nil, nil),
+            ("Lisa Larson", ["Lisa Larson"], "Svensk keramiker och formgivare. Kontrollera signatur, modellserie och tillverkningsmärkning; en formgivarsignatur fastställer inte ensam när föremålet tillverkades.", nil, nil),
+            ("Berndt Friberg", ["Berndt Friberg"], "Svensk keramiker verksam vid Gustavsbergs porslinsfabrik. Jämför signatur, glasyr, form och dokumenterad modell.", nil, nil),
+            ("Gunnar Nylund", ["Gunnar Nylund"], "Formgivare verksam bland annat vid Rörstrand. Kontrollera signatur och modell mot dokumenterade föremål; formgivarnamn är inte samma sak som fabriksstämpel.", nil, nil),
+            ("Wilhelm Kåge", ["Wilhelm Kåge", "Wilhelm Kage"], "Svensk keramiker och formgivare knuten till Gustavsberg. Jämför signatur, dekor och modellserie.", nil, nil),
+            ("Arthur Percy", ["Arthur Percy"], "Svensk konstnär och formgivare, bland annat verksam med porslins- och glasdekor. Kontrollera om märkningen är en signatur, dekorbeteckning eller senare hänvisning.", nil, nil),
+            ("Vicke Lindstrand", ["Vicke Lindstrand"], "Svensk glaskonstnär och formgivare. Jämför signatur, modell och brukets märkning innan föremålet attribueras.", nil, nil),
+            ("Sven Palmqvist", ["Sven Palmqvist"], "Svensk glasformgivare. Kontrollera signatur, teknik och modell mot dokumenterade glasföremål.", nil, nil),
+            ("Edvin Öhrström", ["Edvin Öhrström", "Edvin Ohrstrom"], "Svensk skulptör och glasformgivare. Jämför signatur, teknik och föremålets utförande; OCR-träffen är endast en ledtråd.", nil, nil)
         ]
 
         return references.compactMap { reference in
@@ -829,6 +838,14 @@ struct ScannerView: View {
     /// Describe what kind of name the OCR matched; this is context, not proof
     /// that the object was made by the named company.
     private func manufacturerCategory(for maker: String) -> String {
+        let designers: Set<String> = [
+            "Stig Lindberg", "Lisa Larson", "Berndt Friberg", "Gunnar Nylund",
+            "Wilhelm Kåge", "Arthur Percy", "Vicke Lindstrand", "Sven Palmqvist",
+            "Edvin Öhrström"
+        ]
+        if designers.contains(maker) {
+            return "Formgivare / konstnär"
+        }
         switch maker {
         case "Iittala", "Kosta Boda":
             return "Varumärke / glasdesign"
