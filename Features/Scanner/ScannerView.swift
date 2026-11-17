@@ -25,6 +25,7 @@ struct ScannerView: View {
     @State private var collectionMatches: [CollectionImageMatch] = []
     @State private var isComparingCollection = false
     @State private var scanGeneration = UUID()
+    @State private var photoLoadGeneration = UUID()
 
     var body: some View {
         NavigationStack {
@@ -108,11 +109,16 @@ struct ScannerView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
                             .onChange(of: selectedPhoto) { _, item in
+                                // Photo loading is asynchronous too: a slower earlier
+                                // selection must never replace the user's latest choice.
+                                let loadGeneration = UUID()
+                                photoLoadGeneration = loadGeneration
                                 Task {
-                                    guard let data = try? await item?.loadTransferable(type: Data.self),
-                                          let selectedImage = UIImage(data: data) else { return }
+                                    guard let item,
+                                          let data = try? await item.loadTransferable(type: Data.self),
+                                          let selectedImage = UIImage(data: data),
+                                          loadGeneration == photoLoadGeneration else { return }
                                     image = selectedImage
-                                    resetScanResults()
                                 }
                             }
 
