@@ -735,6 +735,10 @@ struct ScannerView: View {
                             Text(match.maker)
                                 .font(.system(size: 15, weight: .semibold, design: .serif))
                                 .foregroundStyle(AntiqueTheme.forest)
+                            Text(manufacturerCategory(for: match.maker).uppercased())
+                                .font(.system(size: 9, weight: .semibold, design: .serif))
+                                .tracking(0.9)
+                                .foregroundStyle(AntiqueTheme.brass)
                             Text(match.note)
                                 .font(.system(size: 12, design: .serif))
                                 .foregroundStyle(AntiqueTheme.ink)
@@ -822,6 +826,25 @@ struct ScannerView: View {
             return nil
         }
     }
+    /// Describe what kind of name the OCR matched; this is context, not proof
+    /// that the object was made by the named company.
+    private func manufacturerCategory(for maker: String) -> String {
+        switch maker {
+        case "Iittala", "Kosta Boda":
+            return "Varumärke / glasdesign"
+        case "Arabia", "Royal Copenhagen", "Bing & Grøndahl":
+            return "Porslinstillverkare"
+        case "Rörstrand", "Gustavsberg", "Gefle":
+            return "Porslinsfabrik"
+        case "Upsala-Ekeby", "Höganäs", "Jie Gantofta", "Nittsjö", "Bo Fajans":
+            return "Keramikproducent"
+        case "Kosta", "Boda", "Orrefors", "Skruf", "Målerås", "Nuutajärvi", "Riihimäen Lasi", "Holmegaard":
+            return "Glasbruk"
+        default:
+            return "Tillverkarnamn / möjlig märkning"
+        }
+    }
+
     private func reportRow(_ heading: String, _ detail: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(heading.uppercased())
