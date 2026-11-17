@@ -832,7 +832,7 @@ private enum AntiquePriceInput {
             .replacingOccurrences(of: "\u{202f}", with: "")
 
         let plainPattern = #"^[0-9]+(?:,[0-9]{1,2})?$"#
-        let groupedPattern = #"^[0-9]{1,3}(?:\\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
+        let groupedPattern = #"^[0-9]{1,3}(?:\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
         let valid = compact.range(of: plainPattern, options: .regularExpression) != nil
             || compact.range(of: groupedPattern, options: .regularExpression) != nil
         guard valid,
