@@ -224,7 +224,8 @@ struct ScannerView: View {
                 // Keep the ScrollView viewport full-height. A bottom safeAreaInset
                 // here reduced the visible viewport and produced a hard horizontal
                 // clipping edge above the tab bar. Add scroll-content margin instead.
-                .contentMargins(.bottom, 112, for: .scrollContent)
+                .safeAreaPadding(.bottom, 124)
+        .scrollIndicators(.hidden)
             }
             .toolbar(.hidden, for: .navigationBar)
             .onChange(of: image) { _, newImage in
@@ -591,22 +592,30 @@ struct ScannerView: View {
                 .foregroundStyle(AntiqueTheme.brass)
 
             if let primaryClue {
-                Text("Bildmodellens ledtråd")
+                Text("PRELIMINÄR BILDTOLKNING")
                     .font(.system(size: 10, weight: .semibold, design: .serif))
                     .tracking(0.8)
                     .foregroundStyle(AntiqueTheme.walnut)
                 Text(primaryClue)
                     .font(AntiqueTheme.title(25))
                     .foregroundStyle(AntiqueTheme.forest)
-                Text("Detta är modellens bästa bildledtråd – inte en identifiering. Bildmodellen kan förväxla föremål med miljö och motiv. Använd därför inte kategorin som föremålsnamn förrän den stämmer med bilden.")
+                Text("En automatisk bildledtråd – inte en säker bestämning. Kontrollera först att den beskriver själva föremålet och inte underlaget, miljön eller dekoren.")
                     .font(.system(size: 13, design: .serif))
                     .foregroundStyle(AntiqueTheme.mutedInk)
-                reportRow("Vad som behöver kontrolleras", inspectionSummary(for: primaryClue))
+                reportRow("Undersök särskilt", inspectionSummary(for: primaryClue))
+            } else {
+                Text("Föremålstypen är ännu inte bestämd")
+                    .font(AntiqueTheme.title(21))
+                    .foregroundStyle(AntiqueTheme.forest)
+                Text("Bildmodellen gav ingen tillräckligt användbar föremålskategori. Vi visar hellre ingen gissning än en missvisande identifiering.")
+                    .font(.system(size: 13, design: .serif))
+                    .foregroundStyle(AntiqueTheme.mutedInk)
             }
 
-            reportRow("Material och tillverkare", "Inte fastställda. Material kräver kontroll av yta, vikt, ljud, genomlysning eller annan lämplig undersökning. Tillverkare kräver jämförbar märkning eller dokumentation.")
-            reportRow("Ålder och ursprung", "Kräver märkningar, konstruktion, materialdetaljer och jämförelser med dokumenterade föremål.")
-            reportRow("Marknadsvärde", "Ingen värdering görs utan verifierbara jämförelseförsäljningar.")
+            reportRow("Material", "Inte fastställt från bilden. Kontrollera godsets yta, vikt, genomlysning, ljud och konstruktion där det är lämpligt.")
+            reportRow("Tillverkare", "Inte verifierad. Kräver en tydlig hel stämpel, signatur, etikett eller dokumenterad jämförelse.")
+            reportRow("Ålder och ursprung", "Inte fastställda. Bedöm mot märkning, form, tillverkningsteknik och dokumenterade jämförelseföremål.")
+            reportRow("Marknadsvärde", "Ingen värdering ännu. Kräver jämförbara avslutade försäljningar av samma eller nära besläktad modell.");
 
             if !rawMarkingText.isEmpty && rawMarkingText != recognizedText {
                 VStack(alignment: .leading, spacing: 5) {
