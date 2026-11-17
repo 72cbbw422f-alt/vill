@@ -575,21 +575,33 @@ private struct AddEvidenceSheet: View {
 
     // Accept Swedish decimal commas and common thousands separators, but reject
     // empty, malformed, zero and negative amounts before saving a price reference.
-    private var normalizedAmount: String {
-        var value = amount
+    private var normalizedAmount: String? {
+        let raw = amount
             .trimmingCharacters(in: .whitespacesAndNewlines)
+        let compact = raw
             .replacingOccurrences(of: " ", with: "")
             .replacingOccurrences(of: "\u{00a0}", with: "")
             .replacingOccurrences(of: "\u{202f}", with: "")
-        if value.contains(",") {
-            value = value.replacingOccurrences(of: ".", with: "")
-                .replacingOccurrences(of: ",", with: ".")
-        }
-        return value
+
+        // Swedish input uses a decimal comma. Grouping separators are accepted
+        // only in correctly sized groups, so malformed values like 1.2,3 cannot
+        // silently turn into a different price.
+        let plainPattern = #"^[0-9]+(?:,[0-9]{1,2})?$"#
+        let groupedPattern = #"^[0-9]{1,3}(?:\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
+        let spacedPattern = #"^[0-9]{1,3}(?:[ \u{00a0}\u{202f}][0-9]{3})+(?:,[0-9]{1,2})?$"#
+        let isValidFormat = compact.range(of: plainPattern, options: .regularExpression) != nil
+            || compact.range(of: groupedPattern, options: .regularExpression) != nil
+            || raw.range(of: spacedPattern, options: .regularExpression) != nil
+        guard isValidFormat else { return nil }
+
+        return compact
+            .replacingOccurrences(of: ".", with: "")
+            .replacingOccurrences(of: ",", with: ".")
     }
 
     private var hasValidAmount: Bool {
-        guard let value = Decimal(string: normalizedAmount, locale: Locale(identifier: "en_US_POSIX")) else {
+        guard let normalizedAmount,
+              let value = Decimal(string: normalizedAmount, locale: Locale(identifier: "en_US_POSIX")) else {
             return false
         }
         return value > 0
