@@ -667,7 +667,7 @@ struct ScannerView: View {
                             }
                         }
                     }
-                    Text("Träffarna bygger på OCR-text och kan vara fellästa eller avse något annat än tillverkaren. Enstaka ortsnamn och korta bokstavskombinationer räcker inte som bevis. Kontrollera alltid hela stämpeln, placeringen och originalbilden.")
+                    Text("Träffarna bygger enbart på OCR-text och kan vara fellästa eller avse något annat än tillverkaren. Källänkarna ger historisk bakgrund – de verifierar inte att just ditt föremål är äkta, tillverkat av märket eller från en viss period. Enstaka ortsnamn och korta bokstavskombinationer räcker inte som bevis. Kontrollera hela stämpeln, placeringen, godset och originalbilden.")
                         .font(.system(size: 11, design: .serif))
                         .foregroundStyle(AntiqueTheme.mutedInk)
                 }
@@ -701,7 +701,7 @@ struct ScannerView: View {
         let normalizedSource = source.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
         let references: [(maker: String, aliases: [String], note: String, sourceTitle: String?, sourceURL: String?)] = [
             ("Rörstrand", ["Rörstrand"], "Svensk porslinsfabrik grundad 1726. Rörstrands museum beskriver flera märkningsepoker: tidiga Stockholm/Rörstrand-märkningar, kronstämpeln från 1884 och ett krönt R från 2000. En OCR-träff på namnet daterar inte föremålet i sig.", "Rörstrand Museum – Stämplar", "https://rorstrand-museum.se/stamplar/"),
-            ("Gustavsberg", ["Gustavsberg"], "Porslinsfabriken grundades 1825. Den klassiska ankarmärkningen infördes 1839. Kontrollera ankarets utformning och eventuell formgivar- eller modellmärkning mot föremålet.", "Gustafsbergs Porslinsfabrik – Historik", "https://gustafsberg.com/en/pages/om-oss"),
+            ("Gustavsberg", ["Gustavsberg"], "Porslinsfabriken grundades 1825. Den klassiska ankarmärkningen infördes 1839. Kontrollera ankarets utformning och eventuell formgivar- eller modellmärkning mot föremålet.", "Gustafsbergs Porslinsfabrik – Historik", "https://www.gustavsberg.com/se/om-oss/var-historia"),
             ("Gefle", ["Gefle"], "Namn som förekommer på svenskt porslin. OCR-träffen är endast en ledtråd; jämför hela stämpeln, dekor och föremålets form.", nil, nil),
             ("Upsala-Ekeby", ["Upsala-Ekeby", "Upsala Ekeby"], "Svensk keramik- och porslinstillverkare. Jämför hela märkningen, modell och dekor; OCR-träffen verifierar inte fabrikat.", nil, nil),
             ("Höganäs", ["Höganäs", "Hoganas"], "Namn förknippat med svensk keramik. Kontrollera om märkningen avser fabrik, ort eller senare återförsäljning.", nil, nil),
