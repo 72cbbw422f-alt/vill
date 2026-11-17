@@ -820,7 +820,22 @@ struct ScannerView: View {
             ("Arthur Percy", ["Arthur Percy"], "Svensk konstnär och formgivare, bland annat verksam med porslins- och glasdekor. Kontrollera om märkningen är en signatur, dekorbeteckning eller senare hänvisning.", nil, nil),
             ("Vicke Lindstrand", ["Vicke Lindstrand"], "Svensk glaskonstnär och formgivare. Jämför signatur, modell och brukets märkning innan föremålet attribueras.", nil, nil),
             ("Sven Palmqvist", ["Sven Palmqvist"], "Svensk glasformgivare. Kontrollera signatur, teknik och modell mot dokumenterade glasföremål.", nil, nil),
-            ("Edvin Öhrström", ["Edvin Öhrström", "Edvin Ohrstrom"], "Svensk skulptör och glasformgivare. Jämför signatur, teknik och föremålets utförande; OCR-träffen är endast en ledtråd.", nil, nil)
+            ("Edvin Öhrström", ["Edvin Öhrström", "Edvin Ohrstrom"], "Svensk skulptör och glasformgivare. Jämför signatur, teknik och föremålets utförande; OCR-träffen är endast en ledtråd.", nil, nil),
+            ("Carl-Harry Stålhane", ["Carl-Harry Stålhane", "Carl Harry Stalhane"], "Svensk keramiker och formgivare verksam vid Rörstrand och senare egen studio. Jämför signatur, glasyr och dokumenterad modell; namnet anger formgivare, inte automatiskt tillverkningsplats.", nil, nil),
+            ("Marianne Westman", ["Marianne Westman"], "Svensk formgivare verksam vid Rörstrand, bland annat med servis- och dekorformgivning. Jämför modell, dekor och fabriksmärkning separat.", nil, nil),
+            ("Hertha Bengtson", ["Hertha Bengtson"], "Svensk keramiker och formgivare knuten till Rörstrand och andra producenter. Kontrollera modell och fabriksmärkning; signatur och tillverkningsort är skilda uppgifter.", nil, nil),
+            ("Signe Persson-Melin", ["Signe Persson-Melin", "Signe Persson Melin"], "Svensk keramiker och formgivare verksam med keramik, glas och industridesign. Jämför material, modell och producentmärkning.", nil, nil),
+            ("Per Lütken", ["Per Lütken", "Per Lutken"], "Dansk glasformgivare knuten till Holmegaard. Jämför signatur, modell och glasbrukets märkning innan attribution.", nil, nil),
+            ("Jacob E. Bang", ["Jacob E. Bang"], "Dansk formgivare verksam inom glas och industriell formgivning, bland annat vid Holmegaard. En OCR-träff behöver jämföras med dokumenterad modell och märkning.", nil, nil),
+            ("Bjørn Wiinblad", ["Bjørn Wiinblad", "Bjorn Wiinblad"], "Dansk konstnär och formgivare med arbeten inom bland annat keramik och porslin. Kontrollera dekor, signatur och producentens märkning separat.", nil, nil),
+            ("Axel Salto", ["Axel Salto"], "Dansk keramiker och formgivare. Jämför signatur, relief, glasyr och dokumenterad modell; en namnläsning fastställer inte äkthet.", nil, nil),
+            ("Pukeberg", ["Pukeberg"], "Svenskt glasbruk. Kontrollera etikett, signatur, modell och eventuell formgivare; orts- eller bruksnamn ensamt daterar inte glaset.", nil, nil),
+            ("Lindshammar", ["Lindshammar"], "Svenskt glasbruk. Jämför etikett, gravyr, form och dokumenterad modell.", nil, nil),
+            ("Flygsfors", ["Flygsfors"], "Svenskt glasbruk. Kontrollera etikett, signatur och modellserie; skilj brukets namn från formgivarens.", nil, nil),
+            ("Reijmyre", ["Reijmyre"], "Svenskt glasbruk med lång historia. Jämför etikett, gravyr, form och tillverkningsdetaljer; namnet ensamt ger ingen säker datering.", nil, nil),
+            ("Åseda", ["Åseda Glasbruk", "Aseda Glasbruk"], "Svenskt glasbruk. En fullständig bruksbeteckning är mer vägledande än ortsnamnet Åseda ensamt; kontrollera etikett och signatur.", nil, nil),
+            ("Eda", ["Eda Glasbruk"], "Svenskt glasbruk. Kontrollera att OCR verkligen läst hela beteckningen Eda Glasbruk och jämför med etikett och modell.", nil, nil),
+            ("Gullaskruf", ["Gullaskruf"], "Svenskt glasbruk. Jämför etikett, gravyr och form med dokumenterade modeller; OCR-träffen är en sökledtråd.", nil, nil)
         ]
 
         return references.compactMap { reference in
@@ -841,7 +856,9 @@ struct ScannerView: View {
         let designers: Set<String> = [
             "Stig Lindberg", "Lisa Larson", "Berndt Friberg", "Gunnar Nylund",
             "Wilhelm Kåge", "Arthur Percy", "Vicke Lindstrand", "Sven Palmqvist",
-            "Edvin Öhrström"
+            "Edvin Öhrström", "Carl-Harry Stålhane", "Marianne Westman",
+            "Hertha Bengtson", "Signe Persson-Melin", "Per Lütken",
+            "Jacob E. Bang", "Bjørn Wiinblad", "Axel Salto"
         ]
         if designers.contains(maker) {
             return "Formgivare / konstnär"
@@ -855,7 +872,8 @@ struct ScannerView: View {
             return "Porslinsfabrik"
         case "Upsala-Ekeby", "Höganäs", "Jie Gantofta", "Nittsjö", "Bo Fajans":
             return "Keramikproducent"
-        case "Kosta", "Boda", "Orrefors", "Skruf", "Målerås", "Nuutajärvi", "Riihimäen Lasi", "Holmegaard":
+        case "Kosta", "Boda", "Orrefors", "Skruf", "Målerås", "Nuutajärvi", "Riihimäen Lasi", "Holmegaard",
+             "Pukeberg", "Lindshammar", "Flygsfors", "Reijmyre", "Åseda", "Eda", "Gullaskruf":
             return "Glasbruk"
         default:
             return "Tillverkarnamn / möjlig märkning"
