@@ -4,13 +4,28 @@ struct CollectionView: View {
     @EnvironmentObject private var collection: CollectionStore
     @State private var searchText = ""
     @State private var sortOrder: CollectionSort = .newest
+    @State private var collectionFilter: CollectionFilter = .all
 
     private var filteredItems: [SavedAntique] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return collection.items }
         return collection.items.filter { item in
-            [item.title, item.maker, item.estimatedPeriod, item.materials, item.markings, item.provenance, item.notes]
-                .contains { $0.localizedCaseInsensitiveContains(query) }
+            let matchesSearch = query.isEmpty || [
+                item.title, item.maker, item.estimatedPeriod, item.materials,
+                item.markings, item.provenance, item.notes
+            ].contains { $0.localizedCaseInsensitiveContains(query) }
+
+            let matchesFilter: Bool
+            switch collectionFilter {
+            case .all:
+                matchesFilter = true
+            case .withEvidence:
+                matchesFilter = !item.evidence.isEmpty
+            case .needsDetails:
+                matchesFilter = item.maker.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    || item.estimatedPeriod.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    || item.markings.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            return matchesSearch && matchesFilter
         }
     }
 
@@ -74,10 +89,19 @@ struct CollectionView: View {
                             .background(AntiqueTheme.parchment)
                             .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55), lineWidth: 1))
 
+                            Picker("Visa samlingen", selection: $collectionFilter) {
+                                ForEach(CollectionFilter.allCases) { option in
+                                    Text(option.title).tag(option)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .tint(AntiqueTheme.forest)
+                            .accessibilityLabel("Filtrera samlingen")
+
                             HStack {
                                 Text(searchText.isEmpty
                                      ? "\(sortedItems.count) FÖREMÅL"
-                                     : "\(sortedItems.count) SÖKTRÄFFAR")
+                                     : "\(sortedItems.count) TRÄFFAR")
                                     .font(.system(size: 10, weight: .semibold, design: .serif))
                                     .tracking(1.4)
                                     .foregroundStyle(AntiqueTheme.brass)
@@ -245,6 +269,22 @@ struct CollectionView: View {
         .padding(26)
     }
 }
+private enum CollectionFilter: String, CaseIterable, Identifiable {
+    case all
+    case withEvidence
+    case needsDetails
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .all: return "Alla"
+        case .withEvidence: return "Prisunderlag"
+        case .needsDetails: return "Komplettera"
+        }
+    }
+}
+
 private enum CollectionSort: String, CaseIterable, Identifiable {
     case newest
     case oldest
