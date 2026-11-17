@@ -821,7 +821,7 @@ private enum AntiqueCatalogPDF {
     }
 }
 
-private enum AntiquePriceInput {
+enum AntiquePriceInput {
     /// Normalize Swedish currency input without silently reinterpreting malformed
     /// grouping. Returns a decimal-point representation suitable for storage.
     static func normalized(_ raw: String) -> String? {
