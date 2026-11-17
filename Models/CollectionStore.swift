@@ -105,6 +105,8 @@ struct SavedAntique: Identifiable, Codable {
 @MainActor
 final class CollectionStore: ObservableObject {
     @Published private(set) var items: [SavedAntique] = []
+    @Published private(set) var loadError: String?
+    private var isPersistenceBlocked = false
     private let fileManager = FileManager.default
 
     init() { load() }
@@ -194,16 +196,26 @@ final class CollectionStore: ObservableObject {
     func image(for item: SavedAntique) -> UIImage? { image(named: item.imageFileName) }
 
     private func load() {
-        guard let url = try? dataFileURL(),
-              let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode([SavedAntique].self, from: data) else {
+        do {
+            let url = try dataFileURL()
+            guard fileManager.fileExists(atPath: url.path) else {
+                items = []
+                return
+            }
+            let data = try Data(contentsOf: url)
+            let decoded = try JSONDecoder().decode([SavedAntique].self, from: data)
+            items = decoded.sorted { $0.createdAt > $1.createdAt }
+        } catch {
+            // Never present a failed read/decode as an empty collection. Keep the
+            // original JSON untouched and block writes until the data is recovered.
             items = []
-            return
+            isPersistenceBlocked = true
+            loadError = "Samlingens sparade data kunde inte läsas. Originalfilen har lämnats orörd och inga ändringar tillåts, så att föremålen inte riskerar att skrivas över."
         }
-        items = decoded.sorted { $0.createdAt > $1.createdAt }
     }
 
     private func persist() throws {
+        guard !isPersistenceBlocked else { throw StoreError.recoveryRequired }
         let data = try JSONEncoder().encode(items)
         try data.write(to: dataFileURL(), options: .atomic)
     }
@@ -224,6 +236,14 @@ final class CollectionStore: ObservableObject {
 
     enum StoreError: LocalizedError {
         case imageEncodingFailed
-        var errorDescription: String? { "Bilden kunde inte sparas. Försök med en annan bild." }
+        case recoveryRequired
+        var errorDescription: String? {
+            switch self {
+            case .imageEncodingFailed:
+                return "Bilden kunde inte sparas. Försök med en annan bild."
+            case .recoveryRequired:
+                return "Samlingen är skrivskyddad eftersom tidigare sparade data inte kunde läsas. Originalfilen har inte ändrats."
+            }
+        }
     }
 }
