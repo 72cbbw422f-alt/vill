@@ -3,6 +3,7 @@ import SwiftUI
 struct CollectionView: View {
     @EnvironmentObject private var collection: CollectionStore
     @State private var searchText = ""
+    @State private var sortOrder: CollectionSort = .newest
 
     private var filteredItems: [SavedAntique] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -10,6 +11,24 @@ struct CollectionView: View {
         return collection.items.filter { item in
             [item.title, item.maker, item.estimatedPeriod, item.materials, item.markings, item.provenance, item.notes]
                 .contains { $0.localizedCaseInsensitiveContains(query) }
+        }
+    }
+
+    private var sortedItems: [SavedAntique] {
+        filteredItems.sorted { lhs, rhs in
+            switch sortOrder {
+            case .newest:
+                return lhs.createdAt > rhs.createdAt
+            case .oldest:
+                return lhs.createdAt < rhs.createdAt
+            case .title:
+                return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+            case .maker:
+                let comparison = lhs.maker.localizedStandardCompare(rhs.maker)
+                return comparison == .orderedSame
+                    ? lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+                    : comparison == .orderedAscending
+            }
         }
     }
 
@@ -55,7 +74,35 @@ struct CollectionView: View {
                             .background(AntiqueTheme.parchment)
                             .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.55), lineWidth: 1))
 
-                            if filteredItems.isEmpty {
+                            HStack {
+                                Text(searchText.isEmpty
+                                     ? "\(sortedItems.count) FÖREMÅL"
+                                     : "\(sortedItems.count) SÖKTRÄFFAR")
+                                    .font(.system(size: 10, weight: .semibold, design: .serif))
+                                    .tracking(1.4)
+                                    .foregroundStyle(AntiqueTheme.brass)
+                                Spacer()
+                                Menu {
+                                    ForEach(CollectionSort.allCases) { option in
+                                        Button {
+                                            sortOrder = option
+                                        } label: {
+                                            if sortOrder == option {
+                                                Label(option.title, systemImage: "checkmark")
+                                            } else {
+                                                Text(option.title)
+                                            }
+                                        }
+                                    }
+                                } label: {
+                                    Label(sortOrder.title, systemImage: "arrow.up.arrow.down")
+                                        .font(.system(size: 12, weight: .medium, design: .serif))
+                                        .foregroundStyle(AntiqueTheme.forest)
+                                }
+                                .accessibilityLabel("Sortera samlingen")
+                            }
+
+                            if sortedItems.isEmpty {
                                 VStack(spacing: 8) {
                                     Image(systemName: "magnifyingglass")
                                         .font(.title2)
@@ -70,12 +117,7 @@ struct CollectionView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 32)
                             } else {
-                                Text(searchText.isEmpty ? "KATALOGREGISTER" : "\(filteredItems.count) TRÄFFAR")
-                                    .font(.system(size: 10, weight: .semibold, design: .serif))
-                                    .tracking(1.4)
-                                    .foregroundStyle(AntiqueTheme.brass)
-
-                                ForEach(filteredItems) { item in
+                                ForEach(sortedItems) { item in
                                     NavigationLink {
                                         AntiqueDetailView(item: item)
                                     } label: {
@@ -201,5 +243,22 @@ struct CollectionView: View {
                 .padding(.top, 8)
         }
         .padding(26)
+    }
+}
+private enum CollectionSort: String, CaseIterable, Identifiable {
+    case newest
+    case oldest
+    case title
+    case maker
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .newest: return "Nyast först"
+        case .oldest: return "Äldst först"
+        case .title: return "Namn A–Ö"
+        case .maker: return "Tillverkare A–Ö"
+        }
     }
 }
