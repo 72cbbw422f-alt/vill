@@ -246,7 +246,9 @@ struct ScannerView: View {
     /// Clear every result tied to the previous photo so the next scan
     /// cannot display stale museum matches or collection comparisons.
     private func resetScanResults() {
+        // Invalidate callbacks and clear every transient state owned by the old photo.
         scanGeneration = UUID()
+        isRecognizingText = false
         recognizedText = ""
         imageClues = []
         imageClueDetails = []
