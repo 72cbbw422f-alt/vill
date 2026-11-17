@@ -894,10 +894,18 @@ struct ScannerView: View {
     }
 
     private static func localizedClue(_ identifier: String) -> String? {
-        // Vision may return either a simple label or a hierarchical label
-        // such as "animal, mammal, horse". Match meaningful components.
-        let key = identifier.lowercased()
+        // Vision labels can be hierarchical (for example "tableware, plate").
+        // Match complete label components, not arbitrary substrings: otherwise
+        // "tableware" can incorrectly become "Bord".
+        let components = identifier.lowercased()
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         let terms: [(String, String)] = [
+            ("tableware", "Tallrik / servis"), ("dinnerware", "Tallrik / servis"),
+            ("plate", "Tallrik"), ("dish", "Fat / tallrik"),
+            ("porcelain", "Porslin"), ("ceramic", "Keramik"),
+            ("pottery", "Keramik"), ("bowl", "Skål"),
+            ("cup", "Kopp"), ("mug", "Mugg"),
             ("horse", "Hästmotiv"), ("equine", "Hästmotiv"),
             ("dog", "Hundmotiv"), ("canine", "Hundmotiv"),
             ("cat", "Kattmotiv"), ("feline", "Kattmotiv"),
@@ -907,9 +915,6 @@ struct ScannerView: View {
             ("statue", "Skulptur"), ("vase", "Vas"), ("urn", "Urna"),
             ("teapot", "Tekanna"), ("pitcher", "Kanna"), ("jug", "Kanna"),
             ("bottle", "Flaska"), ("glass", "Glasföremål"),
-            ("porcelain", "Porslin"), ("ceramic", "Keramik"),
-            ("pottery", "Keramik"), ("bowl", "Skål"),
-            ("plate", "Tallrik"), ("cup", "Kopp"), ("mug", "Mugg"),
             ("clock", "Klocka"), ("watch", "Armbandsur"),
             ("lamp", "Lampa"), ("chair", "Stol"), ("table", "Bord"),
             ("cabinet", "Skåp"), ("furniture", "Möbel"),
@@ -917,7 +922,7 @@ struct ScannerView: View {
             ("jewelry", "Smycke"), ("ring", "Ring"), ("brooch", "Brosch"),
             ("coin", "Mynt"), ("book", "Bok")
         ]
-        return terms.first(where: { key.contains($0.0) })?.1
+        return terms.first(where: { components.contains($0.0) })?.1
     }
 }
 
