@@ -595,8 +595,13 @@ private enum AntiqueCatalogPDF {
     static func create(item: SavedAntique, coverImage: UIImage?) throws -> URL {
         let page = CGRect(x: 0, y: 0, width: 612, height: 792)
         let renderer = UIGraphicsPDFRenderer(bounds: page)
-        let safeTitle = item.title.replacingOccurrences(of: "/", with: "-")
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Antikspanaren-\(safeTitle).pdf")
+        let safeTitle = item.title
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: "\\", with: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let uniqueSuffix = UUID().uuidString.prefix(8)
+        let filename = "Antikspanaren-\(safeTitle.isEmpty ? "Föremål" : safeTitle)-\(uniqueSuffix).pdf"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
         let ink = UIColor(red: 0.12, green: 0.16, blue: 0.13, alpha: 1)
         let green = UIColor(red: 0.055, green: 0.145, blue: 0.105, alpha: 1)
         let brass = UIColor(red: 0.76, green: 0.59, blue: 0.30, alpha: 1)
