@@ -224,8 +224,8 @@ struct ScannerView: View {
                 // Keep the ScrollView viewport full-height. A bottom safeAreaInset
                 // here reduced the visible viewport and produced a hard horizontal
                 // clipping edge above the tab bar. Add scroll-content margin instead.
-                .safeAreaPadding(.bottom, 124)
-        .scrollIndicators(.hidden)
+                .contentMargins(.bottom, 124, for: .scrollContent)
+                .scrollIndicators(.hidden)
             }
             .toolbar(.hidden, for: .navigationBar)
             .onChange(of: image) { _, newImage in
