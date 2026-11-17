@@ -424,7 +424,7 @@ struct AntiqueDetailView: View {
                 .foregroundStyle(AntiqueTheme.walnut)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
-            Text("\\(count)")
+            Text("\(count)")
                 .font(.system(size: 22, weight: .medium, design: .serif).monospacedDigit())
                 .foregroundStyle(AntiqueTheme.forest)
         }
