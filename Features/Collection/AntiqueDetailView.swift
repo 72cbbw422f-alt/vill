@@ -514,6 +514,11 @@ private struct AddEvidenceSheet: View {
                         field("Auktionshus / källa", text: $sourceName)
                         field("Pris i kronor", text: $amount)
                             .keyboardType(.decimalPad)
+                        if !amount.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !hasValidAmount {
+                            Text("Ange ett positivt belopp, exempelvis 1250 eller 1250,50.")
+                                .font(.system(size: 11, design: .serif))
+                                .foregroundStyle(.red)
+                        }
 
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Typ av prisuppgift")
@@ -561,11 +566,33 @@ private struct AddEvidenceSheet: View {
                                                  notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)))
                         dismiss()
                     }
-                    .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || amount.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !hasValidAmount)
                     .foregroundStyle(AntiqueTheme.forest)
                 }
             }
         }
+    }
+
+    // Accept Swedish decimal commas and common thousands separators, but reject
+    // empty, malformed, zero and negative amounts before saving a price reference.
+    private var normalizedAmount: String {
+        var value = amount
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "\\u{00a0}", with: "")
+            .replacingOccurrences(of: "\\u{202f}", with: "")
+        if value.contains(",") {
+            value = value.replacingOccurrences(of: ".", with: "")
+                .replacingOccurrences(of: ",", with: ".")
+        }
+        return value
+    }
+
+    private var hasValidAmount: Bool {
+        guard let value = Decimal(string: normalizedAmount, locale: Locale(identifier: "en_US_POSIX")) else {
+            return false
+        }
+        return value > 0
     }
 
     // Keep legacy/unknown values visible while editing. Otherwise SwiftUI's
