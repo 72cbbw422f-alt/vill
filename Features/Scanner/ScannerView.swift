@@ -8,6 +8,8 @@ struct ScannerView: View {
     @EnvironmentObject private var collection: CollectionStore
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var image: UIImage?
+    @State private var isLoadingPhoto = false
+    @State private var photoLoadError: String?
     @State private var showingCamera = false
     @State private var showingSaveForm = false
     @State private var isRecognizingText = false
@@ -62,6 +64,14 @@ struct ScannerView: View {
                                     .resizable()
                                     .scaledToFit()
                                     .padding(12)
+                            } else if isLoadingPhoto {
+                                VStack(spacing: 12) {
+                                    ProgressView()
+                                        .tint(AntiqueTheme.forest)
+                                    Text("Läser in bilden …")
+                                        .font(.system(size: 15, design: .serif))
+                                }
+                                .foregroundStyle(AntiqueTheme.walnut)
                             } else {
                                 VStack(spacing: 12) {
                                     Image(systemName: "camera.macro")
@@ -109,16 +119,33 @@ struct ScannerView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
                             .onChange(of: selectedPhoto) { _, item in
-                                // Photo loading is asynchronous too: a slower earlier
-                                // selection must never replace the user's latest choice.
+                                // Clear the previous photo immediately. If loading the
+                                // new selection fails, the old object must not remain
+                                // on screen and be mistaken for the newly selected one.
                                 let loadGeneration = UUID()
                                 photoLoadGeneration = loadGeneration
+                                photoLoadError = nil
+                                image = nil
+                                resetScanResults()
+                                guard let item else {
+                                    isLoadingPhoto = false
+                                    return
+                                }
+                                isLoadingPhoto = true
                                 Task {
-                                    guard let item,
-                                          let data = try? await item.loadTransferable(type: Data.self),
-                                          let selectedImage = UIImage(data: data),
-                                          loadGeneration == photoLoadGeneration else { return }
-                                    image = selectedImage
+                                    do {
+                                        guard let data = try await item.loadTransferable(type: Data.self),
+                                              let selectedImage = UIImage(data: data) else {
+                                            throw PhotoLoadError.invalidImage
+                                        }
+                                        guard loadGeneration == photoLoadGeneration else { return }
+                                        image = selectedImage
+                                        isLoadingPhoto = false
+                                    } catch {
+                                        guard loadGeneration == photoLoadGeneration else { return }
+                                        isLoadingPhoto = false
+                                        photoLoadError = "Bilden kunde inte läsas in. Välj en annan bild och försök igen."
+                                    }
                                 }
                             }
 
@@ -156,6 +183,13 @@ struct ScannerView: View {
                                         }
                                 }
                             }
+                        }
+
+                        if let photoLoadError {
+                            Text(photoLoadError)
+                                .font(.system(size: 13, design: .serif))
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
                         if primaryClue != nil || !recognizedText.isEmpty || !rawMarkingText.isEmpty {
@@ -1157,4 +1191,8 @@ private struct MetMuseumObject: Decodable, Identifiable {
 
 private enum MetSearchError: Error {
     case invalidURL
+}
+
+private enum PhotoLoadError: Error {
+    case invalidImage
 }
