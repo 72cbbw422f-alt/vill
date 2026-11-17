@@ -902,17 +902,17 @@ struct ScannerView: View {
             ("ceramic", "Keramik"),
             ("pottery", "Keramik"), ("bowl", "Skål"),
             ("cup", "Kopp"), ("mug", "Mugg"),
-            ("horse", "Hästmotiv"), ("equine", "Hästmotiv"),
-            ("dog", "Hundmotiv"), ("canine", "Hundmotiv"),
-            ("cat", "Kattmotiv"), ("feline", "Kattmotiv"),
-            ("bird", "Fågelmotiv"), ("fish", "Fiskmotiv"),
-            ("animal", "Djurmotiv"), ("figurine", "Figurin"),
+            // Motifs are deliberately not treated as object identities.
+            // A bird painted on a plate must not turn the plate into a bird.
+            ("figurine", "Figurin"),
             ("statuette", "Figurin"), ("sculpture", "Skulptur"),
             ("statue", "Skulptur"), ("vase", "Vas"), ("urn", "Urna"),
             ("teapot", "Tekanna"), ("pitcher", "Kanna"), ("jug", "Kanna"),
             ("bottle", "Flaska"), ("glass", "Glasföremål"),
             ("clock", "Klocka"), ("watch", "Armbandsur"),
-            ("lamp", "Lampa"), ("chair", "Stol"), ("table", "Bord"),
+            ("lamp", "Lampa"), ("chair", "Stol"),
+            // "table" is too ambiguous in object photographs and caused
+            // tableware photographed on a table to be misreported as furniture.
             ("cabinet", "Skåp"), ("furniture", "Möbel"),
             ("painting", "Målning"), ("artwork", "Konstverk"),
             ("jewelry", "Smycke"), ("ring", "Ring"), ("brooch", "Brosch"),
