@@ -164,10 +164,11 @@ struct ScannerView: View {
 
                         if image != nil {
                             museumSearchPanel
+                            sourceResearchPanel
                             collectionComparisonPanel
                         }
 
-                        if !imageClues.isEmpty {
+                        if !imageClueDetails.isEmpty {
                             VStack(alignment: .leading, spacing: 9) {
                                 Text("BILDMODELLENS OBSERVATIONER")
                                     .font(.system(size: 11, weight: .semibold, design: .serif))
