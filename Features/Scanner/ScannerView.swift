@@ -156,7 +156,7 @@ struct ScannerView: View {
                             }
                         }
 
-                        if primaryClue != nil || !recognizedText.isEmpty {
+                        if primaryClue != nil || !recognizedText.isEmpty || !rawMarkingText.isEmpty {
                             analysisReport
                         }
 
