@@ -923,11 +923,19 @@ struct ScannerView: View {
             do {
                 let handler = VNImageRequestHandler(cgImage: cgImage, orientation: cgOrientation)
                 try handler.perform([readingRequest, markingRequest, baseMarkingRequest, classification])
-                let lines = (readingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-                let result = lines.joined(separator: "\n")
+                // General descriptive OCR is filtered more strictly to reduce
+                // stray background text in the report. The raw marking passes remain
+                // deliberately permissive because faint maker stamps are often hard to read.
+                let lines = (readingRequest.results ?? []).compactMap { observation -> String? in
+                    guard let candidate = observation.topCandidates(1).first,
+                          candidate.confidence >= 0.35 else { return nil }
+                    return candidate.string.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                let uniqueLines = Self.uniqueOCRLines(lines)
+                let result = uniqueLines.joined(separator: "\n")
                 let rawLines = (markingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
                 let baseLines = (baseMarkingRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-                let uniqueRawLines = Array(NSOrderedSet(array: rawLines + baseLines)) as? [String] ?? rawLines
+                let uniqueRawLines = Self.uniqueOCRLines(rawLines + baseLines)
                 let rawResult = uniqueRawLines.joined(separator: "\n")
                 // Keep only useful object and motif clues. Vision confidence is
                 // not an identification probability, so never present it as one.
@@ -963,6 +971,20 @@ struct ScannerView: View {
                     isRecognizingText = false
                 }
             }
+        }
+    }
+
+    private static func uniqueOCRLines(_ lines: [String]) -> [String] {
+        var seen = Set<String>()
+        return lines.compactMap { line in
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            let key = trimmed
+                .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+                .split(whereSeparator: { $0.isWhitespace })
+                .joined(separator: " ")
+            guard seen.insert(key).inserted else { return nil }
+            return trimmed
         }
     }
 
