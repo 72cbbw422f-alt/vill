@@ -29,6 +29,25 @@ struct CollectionView: View {
         }
     }
 
+    private var estimatedItemCount: Int {
+        collection.items.filter {
+            !$0.valuationLow.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || !$0.valuationHigh.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }.count
+    }
+
+    private var realizedSaleCount: Int {
+        collection.items.reduce(0) { total, item in
+            total + item.evidence.filter { $0.kind == .realizedSale }.count
+        }
+    }
+
+    private var askingPriceCount: Int {
+        collection.items.reduce(0) { total, item in
+            total + item.evidence.filter { $0.kind == .askingPrice }.count
+        }
+    }
+
     private var sortedItems: [SavedAntique] {
         filteredItems.sorted { lhs, rhs in
             switch sortOrder {
@@ -67,6 +86,8 @@ struct CollectionView: View {
                                     .foregroundStyle(AntiqueTheme.mutedInk)
                             }
                             .padding(.top, 25)
+
+                            collectionOverview
 
                             HStack(spacing: 10) {
                                 Image(systemName: "magnifyingglass")
@@ -159,6 +180,42 @@ struct CollectionView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    private var collectionOverview: some View {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 9), GridItem(.flexible(), spacing: 9)], spacing: 9) {
+            overviewMetric(title: "Egna uppskattningar", value: estimatedItemCount, detail: "föremål med angivet värde", symbol: "scale.3d")
+            overviewMetric(title: "Klubbat slutpris", value: realizedSaleCount, detail: "dokumenterade försäljningar", symbol: "hammer")
+            overviewMetric(title: "Begärda priser", value: askingPriceCount, detail: "annonser och utropspriser", symbol: "tag")
+            overviewMetric(title: "Prisunderlag", value: collection.items.filter { !$0.evidence.isEmpty }.count, detail: "föremål med källor", symbol: "doc.text.magnifyingglass")
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private func overviewMetric(title: String, value: Int, detail: String, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: symbol)
+                    .foregroundStyle(AntiqueTheme.brass)
+                Text(title.uppercased())
+                    .tracking(0.8)
+                    .foregroundStyle(AntiqueTheme.walnut)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            .font(.system(size: 9, weight: .semibold, design: .serif))
+            Text("\(value)")
+                .font(.system(size: 25, weight: .medium, design: .serif).monospacedDigit())
+                .foregroundStyle(AntiqueTheme.forest)
+            Text(detail)
+                .font(.system(size: 10, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(AntiqueTheme.parchment.opacity(0.72))
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.35), lineWidth: 1))
     }
 
     private func itemRow(_ item: SavedAntique) -> some View {
