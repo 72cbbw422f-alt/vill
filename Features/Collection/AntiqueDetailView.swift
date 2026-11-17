@@ -579,8 +579,8 @@ private struct AddEvidenceSheet: View {
         var value = amount
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: "\\u{00a0}", with: "")
-            .replacingOccurrences(of: "\\u{202f}", with: "")
+            .replacingOccurrences(of: "\u{00a0}", with: "")
+            .replacingOccurrences(of: "\u{202f}", with: "")
         if value.contains(",") {
             value = value.replacingOccurrences(of: ".", with: "")
                 .replacingOccurrences(of: ",", with: ".")
