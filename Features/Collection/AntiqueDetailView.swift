@@ -561,7 +561,7 @@ private struct AddEvidenceSheet: View {
                                                  notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)))
                         dismiss()
                     }
-                    .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || amount.isEmpty)
+                    .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || amount.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .foregroundStyle(AntiqueTheme.forest)
                 }
             }
@@ -701,6 +701,16 @@ private enum AntiqueCatalogPDF {
                 ])
             }
 
+            func beginContinuationPage(for heading: String) {
+                beginPage(first: false)
+                let continuation = heading + "  ·  FORTS."
+                (continuation as NSString).draw(
+                    in: CGRect(x: 46, y: y, width: 520, height: 14),
+                    withAttributes: labelAttributes
+                )
+                y += 18
+            }
+
             beginPage(first: true)
 
             for (heading, value) in sections {
@@ -729,7 +739,7 @@ private enum AntiqueCatalogPDF {
                 while remaining.length > 0 {
                     let availableHeight = bottomLimit - y
                     if availableHeight < 28 {
-                        beginPage(first: false)
+                        beginContinuationPage(for: heading)
                         continue
                     }
 
@@ -764,7 +774,7 @@ private enum AntiqueCatalogPDF {
                             }
                         }
                         if best == 0 {
-                            beginPage(first: false)
+                            beginContinuationPage(for: heading)
                             continue
                         }
                         if best < remaining.length {
@@ -783,7 +793,7 @@ private enum AntiqueCatalogPDF {
                         chunk.draw(in: CGRect(x: 46, y: y, width: 520, height: availableHeight), withAttributes: bodyAttributes)
                         y += chunkSize.height + 5
                         remaining = remaining.substring(from: best) as NSString
-                        beginPage(first: false)
+                        beginContinuationPage(for: heading)
                     }
                 }
             }
