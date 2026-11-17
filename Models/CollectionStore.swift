@@ -11,7 +11,7 @@ struct SavedPriceEvidence: Identifiable, Codable {
     var url: String
     var notes: String
 
-    enum EvidenceKind: Codable, CaseIterable, Identifiable {
+    enum EvidenceKind: Codable, CaseIterable, Identifiable, Hashable {
         case realizedSale
         case askingPrice
         case auctionEstimate
