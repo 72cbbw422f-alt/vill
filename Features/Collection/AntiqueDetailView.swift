@@ -822,22 +822,27 @@ private enum AntiqueCatalogPDF {
 }
 
 enum AntiquePriceInput {
-    /// Normalize Swedish currency input without silently reinterpreting malformed
-    /// grouping. Returns a decimal-point representation suitable for storage.
+    /// Normalize Swedish currency input while validating the grouping as entered.
+    /// Returns a decimal-point representation suitable for storage.
     static func normalized(_ raw: String) -> String? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        let compact = trimmed
-            .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: "\u{00a0}", with: "")
-            .replacingOccurrences(of: "\u{202f}", with: "")
+        let spaced = trimmed
+            .replacingOccurrences(of: "\u{00a0}", with: " ")
+            .replacingOccurrences(of: "\u{202f}", with: " ")
 
         let plainPattern = #"^[0-9]+(?:,[0-9]{1,2})?$"#
-        let groupedPattern = #"^[0-9]{1,3}(?:\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
-        let valid = compact.range(of: plainPattern, options: .regularExpression) != nil
-            || compact.range(of: groupedPattern, options: .regularExpression) != nil
-        guard valid,
-              let decimal = Decimal(string: compact.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: "."), locale: Locale(identifier: "en_US_POSIX")),
-              decimal > 0 else { return nil }
+        let dotGroupedPattern = #"^[0-9]{1,3}(?:\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
+        let spaceGroupedPattern = #"^[0-9]{1,3}(?: [0-9]{3})+(?:,[0-9]{1,2})?$"#
+        let isValid = spaced.range(of: plainPattern, options: .regularExpression) != nil
+            || spaced.range(of: dotGroupedPattern, options: .regularExpression) != nil
+            || spaced.range(of: spaceGroupedPattern, options: .regularExpression) != nil
+        guard isValid else { return nil }
+
+        let compact = spaced.replacingOccurrences(of: " ", with: "")
+        guard let decimal = Decimal(
+            string: compact.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: "."),
+            locale: Locale(identifier: "en_US_POSIX")
+        ), decimal > 0 else { return nil }
 
         return NSDecimalNumber(decimal: decimal).stringValue
     }
