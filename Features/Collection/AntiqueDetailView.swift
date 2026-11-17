@@ -46,6 +46,7 @@ struct AntiqueDetailView: View {
                         editField("Material", text: $item.materials)
                         editField("Inköpspris (kr)", text: $item.purchasePrice)
                             .keyboardType(.decimalPad)
+                        optionalPriceWarning(item.purchasePrice, label: "Inköpspriset")
                     }
 
                     section("Märkningar och kännetecken") {
@@ -294,6 +295,7 @@ struct AntiqueDetailView: View {
                 .background(AntiqueTheme.forest)
                 .clipShape(RoundedRectangle(cornerRadius: 5))
         }
+        .disabled(!pricesAreValid)
         .padding(.top, 4)
         .padding(.bottom, 28)
     }
@@ -305,8 +307,15 @@ struct AntiqueDetailView: View {
                 .foregroundStyle(AntiqueTheme.mutedInk)
             editField("Lägre värde (kr)", text: $item.valuationLow)
                 .keyboardType(.decimalPad)
+            optionalPriceWarning(item.valuationLow, label: "Det lägre värdet")
             editField("Högre värde (kr)", text: $item.valuationHigh)
                 .keyboardType(.decimalPad)
+            optionalPriceWarning(item.valuationHigh, label: "Det högre värdet")
+            if valuationRangeIsReversed {
+                Text("Det högre värdet måste vara minst lika stort som det lägre.")
+                    .font(.system(size: 11, design: .serif))
+                    .foregroundStyle(.red)
+            }
             editArea("Kommentar till uppskattningen", text: $item.valuationNotes,
                      hint: "Vad bygger bedömningen på? Skick, jämförelseobjekt …")
 
@@ -390,6 +399,33 @@ struct AntiqueDetailView: View {
                     BrassDivider()
                 }
             }
+        }
+    }
+
+    private var pricesAreValid: Bool {
+        let optionalValues = [item.purchasePrice, item.valuationLow, item.valuationHigh]
+        guard optionalValues.allSatisfy({ $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || AntiquePriceInput.normalized($0) != nil }) else {
+            return false
+        }
+        return !valuationRangeIsReversed
+    }
+
+    private var valuationRangeIsReversed: Bool {
+        guard let low = AntiquePriceInput.normalized(item.valuationLow),
+              let high = AntiquePriceInput.normalized(item.valuationHigh),
+              let lowValue = Decimal(string: low, locale: Locale(identifier: "en_US_POSIX")),
+              let highValue = Decimal(string: high, locale: Locale(identifier: "en_US_POSIX")) else {
+            return false
+        }
+        return highValue < lowValue
+    }
+
+    @ViewBuilder
+    private func optionalPriceWarning(_ value: String, label: String) -> some View {
+        if !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && AntiquePriceInput.normalized(value) == nil {
+            Text("\(label) måste vara ett positivt belopp, exempelvis 1250 eller 1 250,50.")
+                .font(.system(size: 11, design: .serif))
+                .foregroundStyle(.red)
         }
     }
 
@@ -561,7 +597,7 @@ private struct AddEvidenceSheet: View {
                     Button(editingID == nil ? "Lägg till" : "Spara") {
                         onAdd(SavedPriceEvidence(id: editingID ?? UUID(),
                                                  sourceName: sourceName.trimmingCharacters(in: .whitespacesAndNewlines),
-                                                 amount: amount.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 amount: normalizedAmount ?? amount.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  kind: kind, date: evidenceDate, url: url.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)))
                         dismiss()
