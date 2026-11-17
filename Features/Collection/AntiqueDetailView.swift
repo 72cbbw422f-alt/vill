@@ -647,6 +647,11 @@ private struct AddEvidenceSheet: View {
                             .tint(AntiqueTheme.forest)
 
                         field("Länk till källan (om finns)", text: $url)
+                        if !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !hasValidSourceURL {
+                            Text("Ange en fullständig webbadress som börjar med https:// eller http://.")
+                                .font(.system(size: 11, design: .serif))
+                                .foregroundStyle(.red)
+                        }
                         field("Skick på jämförelseobjektet", text: $itemCondition)
                         field("Modell, serie eller utförande", text: $modelDetails)
                         field("Hur väl går det att jämföra?", text: $comparabilityNotes)
@@ -682,7 +687,7 @@ private struct AddEvidenceSheet: View {
                                                  comparabilityNotes: comparabilityNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : comparabilityNotes.trimmingCharacters(in: .whitespacesAndNewlines)))
                         dismiss()
                     }
-                    .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !hasValidAmount)
+                    .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !hasValidAmount || !hasValidSourceURL)
                     .foregroundStyle(AntiqueTheme.forest)
                 }
             }
@@ -699,6 +704,19 @@ private struct AddEvidenceSheet: View {
             return false
         }
         return value > 0
+    }
+
+    private var hasValidSourceURL: Bool {
+        let value = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return true }
+        guard let components = URLComponents(string: value),
+              let scheme = components.scheme?.lowercased(),
+              ["http", "https"].contains(scheme),
+              let host = components.host,
+              !host.isEmpty else {
+            return false
+        }
+        return true
     }
 
     // Keep legacy/unknown values visible while editing. Otherwise SwiftUI's
