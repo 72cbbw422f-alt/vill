@@ -564,7 +564,12 @@ struct ScannerView: View {
         isSearchingMuseums = true
         museumSearchError = nil
         museumResults = []
-        defer { isSearchingMuseums = false }
+        // An older request must not clear the loading state of a newer search.
+        defer {
+            if generation == scanGeneration {
+                isSearchingMuseums = false
+            }
+        }
 
         do {
             var components = URLComponents(string: "https://collectionapi.metmuseum.org/public/collection/v1.1/search")!
