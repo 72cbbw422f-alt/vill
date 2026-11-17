@@ -317,6 +317,7 @@ struct ScannerView: View {
 
     private func compareWithCollection() {
         guard let image, let queryCGImage = image.cgImage else { return }
+        let generation = scanGeneration
         let candidates = collection.items.compactMap { item -> (String, UIImage)? in
             guard let candidateImage = collection.image(for: item) else { return nil }
             return (item.title, candidateImage)
@@ -346,11 +347,13 @@ struct ScannerView: View {
                 }
                 let sorted = matches.sorted { $0.distance < $1.distance }.prefix(3)
                 DispatchQueue.main.async {
+                    guard generation == scanGeneration else { return }
                     collectionMatches = sorted.map { CollectionImageMatch(title: $0.title, distance: $0.distance) }
                     isComparingCollection = false
                 }
             } catch {
                 DispatchQueue.main.async {
+                    guard generation == scanGeneration else { return }
                     collectionMatches = []
                     isComparingCollection = false
                     recognitionError = "Bildjämförelsen kunde inte genomföras. Försök igen."
