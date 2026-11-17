@@ -50,8 +50,8 @@ struct ProfileView: View {
                         .padding(.bottom, 25)
                     }
                     .padding(.horizontal, 22)
-                    .safeAreaPadding(.bottom, 82)
                 }
+                .safeAreaPadding(.bottom, 82)
             }
             .toolbar(.hidden, for: .navigationBar)
         }
