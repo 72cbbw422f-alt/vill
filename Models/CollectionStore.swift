@@ -204,7 +204,7 @@ final class CollectionStore: ObservableObject {
         items[index].additionalImageFileNames.removeAll { $0 == filename }
         do {
             try persist()
-            try? fileManager.removeItem(at: imagesFolder().appendingPathComponent(filename))
+            removeImageFile(named: filename)
         } catch {
             items[index] = previous
             throw error
@@ -217,7 +217,7 @@ final class CollectionStore: ObservableObject {
         do {
             try persist()
             for name in removed.allImageFileNames {
-                try? fileManager.removeItem(at: imagesFolder().appendingPathComponent(name))
+                removeImageFile(named: name)
             }
         } catch {
             items.insert(removed, at: index)
@@ -226,12 +226,27 @@ final class CollectionStore: ObservableObject {
     }
 
     func image(named filename: String) -> UIImage? {
-        guard let folder = try? imagesFolder(),
-              let data = try? Data(contentsOf: folder.appendingPathComponent(filename)) else { return nil }
+        guard let url = imageURL(for: filename),
+              let data = try? Data(contentsOf: url) else { return nil }
         return UIImage(data: data)
     }
 
     func image(for item: SavedAntique) -> UIImage? { image(named: item.imageFileName) }
+
+    // Collection JSON is local but still treated as untrusted input. A malformed
+    // filename must never allow reads or deletes outside the dedicated image folder.
+    private func imageURL(for filename: String) -> URL? {
+        guard !filename.isEmpty,
+              filename == URL(fileURLWithPath: filename).lastPathComponent,
+              filename.lowercased().hasSuffix(".jpg"),
+              let folder = try? imagesFolder() else { return nil }
+        return folder.appendingPathComponent(filename, isDirectory: false)
+    }
+
+    private func removeImageFile(named filename: String) {
+        guard let url = imageURL(for: filename) else { return }
+        try? fileManager.removeItem(at: url)
+    }
 
     private func load() {
         do {
