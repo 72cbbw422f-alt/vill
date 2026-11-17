@@ -581,7 +581,13 @@ struct ScannerView: View {
 
         do {
             var components = URLComponents(string: "https://collectionapi.metmuseum.org/public/collection/v1.1/search")!
-            components.queryItems = [URLQueryItem(name: "q", value: term), URLQueryItem(name: "hasImages", value: "true")]
+            components.queryItems = [
+                URLQueryItem(name: "q", value: term),
+                URLQueryItem(name: "hasImages", value: "true"),
+                URLQueryItem(name: "isPublicDomain", value: "true"),
+                URLQueryItem(name: "limit", value: "20"),
+                URLQueryItem(name: "offset", value: "0")
+            ]
             guard let searchURL = components.url else { throw MetSearchError.invalidURL }
             let (searchData, _) = try await URLSession.shared.data(from: searchURL)
             guard generation == scanGeneration else { return }
