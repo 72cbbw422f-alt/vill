@@ -633,19 +633,6 @@ struct ScannerView: View {
                 }
             }
 
-            if !recognizedText.isEmpty {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("AVLÄST TEXT")
-                        .font(.system(size: 10, weight: .semibold, design: .serif))
-                        .tracking(1)
-                        .foregroundStyle(AntiqueTheme.brass)
-                    Text(recognizedText)
-                        .font(.system(size: 14, design: .serif))
-                        .foregroundStyle(AntiqueTheme.ink)
-                        .textSelection(.enabled)
-                }
-            }
-
             if !markingManufacturerMatches.isEmpty {
                 VStack(alignment: .leading, spacing: 9) {
                     Text("MÖJLIGA STÄMPELTRÄFFAR")
