@@ -320,6 +320,8 @@ struct AntiqueDetailView: View {
                      hint: "Vad bygger bedömningen på? Skick, jämförelseobjekt …")
 
             BrassDivider()
+            evidenceOverview
+
             HStack {
                 Text("Jämförelseobjekt och källor")
                     .font(AntiqueTheme.title(18))
@@ -354,6 +356,9 @@ struct AntiqueDetailView: View {
                         Text(evidence.sourceName)
                             .font(.system(size: 14, design: .serif))
                             .foregroundStyle(AntiqueTheme.ink)
+                        Text(evidenceMeaning(evidence.kind))
+                            .font(.system(size: 11, design: .serif))
+                            .foregroundStyle(AntiqueTheme.mutedInk)
                         if let date = evidence.date {
                             Text(date.formatted(date: .long, time: .omitted))
                                 .font(.system(size: 11, design: .serif))
@@ -399,6 +404,48 @@ struct AntiqueDetailView: View {
                     BrassDivider()
                 }
             }
+        }
+    }
+
+    private var evidenceOverview: some View {
+        let sold = item.evidence.filter { $0.kind == .realizedSale }.count
+        let other = item.evidence.count - sold
+        return HStack(spacing: 10) {
+            evidenceCount(title: "Klubbat", count: sold, symbol: "hammer")
+            evidenceCount(title: "Övriga prisuppgifter", count: other, symbol: "doc.text")
+        }
+    }
+
+    private func evidenceCount(title: String, count: Int, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Label(title.uppercased(), systemImage: symbol)
+                .font(.system(size: 9, weight: .semibold, design: .serif))
+                .tracking(0.6)
+                .foregroundStyle(AntiqueTheme.walnut)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Text("\\(count)")
+                .font(.system(size: 22, weight: .medium, design: .serif).monospacedDigit())
+                .foregroundStyle(AntiqueTheme.forest)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(11)
+        .background(AntiqueTheme.parchment.opacity(0.75))
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.35), lineWidth: 1))
+    }
+
+    private func evidenceMeaning(_ kind: SavedPriceEvidence.EvidenceKind) -> String {
+        switch kind {
+        case .realizedSale:
+            return "Faktiskt försäljningspris – starkast som jämförelse när skick och utförande liknar föremålet."
+        case .askingPrice:
+            return "Begärt pris – visar säljarens prisnivå, inte vad en köpare har betalat."
+        case .auctionEstimate:
+            return "Auktionsvärdering – ett bedömt spann eller riktpris före försäljning."
+        case .expertOpinion:
+            return "Expertbedömning – värdera tillsammans med vem som gjort bedömningen och på vilka grunder."
+        case .unknown:
+            return "Prisuppgiftens typ är okänd. Kontrollera källan innan den används som jämförelse."
         }
     }
 
