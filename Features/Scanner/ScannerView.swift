@@ -639,7 +639,7 @@ struct ScannerView: View {
                 Text("En automatisk bildledtråd – inte en säker bestämning. Kontrollera först att den beskriver själva föremålet och inte underlaget, miljön eller dekoren.")
                     .font(.system(size: 13, design: .serif))
                     .foregroundStyle(AntiqueTheme.mutedInk)
-                reportRow("Undersök särskilt", inspectionSummary(for: primaryClue))
+                reportRow("Om bildtolkningen stämmer", inspectionSummary(for: primaryClue))
             } else {
                 Text("Föremålstypen är ännu inte bestämd")
                     .font(AntiqueTheme.title(21))
@@ -892,7 +892,9 @@ struct ScannerView: View {
                     }
                     .prefix(3)
                 let clues = rankedResults.map { $0.label }
-                let clueDetails = rankedResults.map { $0.label }
+                // The leading clue is already shown prominently in the report.
+                // Keep only secondary observations here to avoid repeating it.
+                let clueDetails = rankedResults.dropFirst().map { $0.label }
                 let leadingClue = rankedResults.first?.label
 
                 DispatchQueue.main.async {
