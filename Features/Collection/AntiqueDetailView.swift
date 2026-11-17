@@ -764,7 +764,16 @@ private enum AntiqueCatalogPDF {
         ]
         for evidence in item.evidence {
             let date = evidence.date.map { $0.formatted(date: .numeric, time: .omitted) } ?? "Datum saknas"
-            let details = [evidence.sourceName, evidence.amount + " kr", date, evidence.url, evidence.notes]
+            let details = [
+                "Källa: " + evidence.sourceName,
+                "Prisuppgift: " + evidence.amount + " kr",
+                "Datum: " + date,
+                evidence.itemCondition.map { "Skick: " + $0 } ?? "",
+                evidence.modelDetails.map { "Modell / utförande: " + $0 } ?? "",
+                evidence.comparabilityNotes.map { "Jämförbarhet: " + $0 } ?? "",
+                evidence.url.isEmpty ? "" : "Källänk: " + evidence.url,
+                evidence.notes.isEmpty ? "" : "Övriga anteckningar: " + evidence.notes
+            ]
                 .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
                 .joined(separator: "\n")
             sections.append((evidence.kind.title.uppercased(), details))
