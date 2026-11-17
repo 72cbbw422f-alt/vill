@@ -221,19 +221,10 @@ struct ScannerView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 36)
                 }
-                // Reserve real viewport space instead of padding the scroll
-                // content: this prevents the status bar and floating tab bar
-                // from visually covering report cards while scrolling.
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    Color.clear
-                        .frame(height: 12)
-                        .background(AntiqueTheme.paper)
-                }
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    Color.clear
-                        .frame(height: 118)
-                        .background(AntiqueTheme.paper)
-                }
+                // Keep the ScrollView viewport full-height. A bottom safeAreaInset
+                // here reduced the visible viewport and produced a hard horizontal
+                // clipping edge above the tab bar. Add scroll-content margin instead.
+                .contentMargins(.bottom, 112, for: .scrollContent)
             }
             .toolbar(.hidden, for: .navigationBar)
             .onChange(of: image) { _, newImage in
@@ -600,13 +591,17 @@ struct ScannerView: View {
                 .foregroundStyle(AntiqueTheme.brass)
 
             if let primaryClue {
+                Text("Bildmodellens ledtråd")
+                    .font(.system(size: 10, weight: .semibold, design: .serif))
+                    .tracking(0.8)
+                    .foregroundStyle(AntiqueTheme.walnut)
                 Text(primaryClue)
                     .font(AntiqueTheme.title(25))
                     .foregroundStyle(AntiqueTheme.forest)
-                Text("Bildmodellen har gett en preliminär motiv- eller objekthypotes. Kontrollera den mot föremålets form, konstruktion och detaljer innan du använder den som beskrivning.")
+                Text("Detta är modellens bästa bildledtråd – inte en identifiering. Bildmodellen kan förväxla föremål med miljö och motiv. Använd därför inte kategorin som föremålsnamn förrän den stämmer med bilden.")
                     .font(.system(size: 13, design: .serif))
                     .foregroundStyle(AntiqueTheme.mutedInk)
-                reportRow("Riktad granskning", inspectionSummary(for: primaryClue))
+                reportRow("Vad som behöver kontrolleras", inspectionSummary(for: primaryClue))
             }
 
             reportRow("Material och tillverkare", "Inte fastställda. Material kräver kontroll av yta, vikt, ljud, genomlysning eller annan lämplig undersökning. Tillverkare kräver jämförbar märkning eller dokumentation.")
@@ -758,7 +753,7 @@ struct ScannerView: View {
             return "Granska gods, glasyr, dekor, fotring och undersida. Leta efter stämpel, drej- eller formspår, krackelering, nagg och lagningar."
         }
         if category.contains("möbel") || category.contains("stol") || category.contains("bord") || category.contains("skåp") {
-            return "Granska sammanfogningar, träslag, fanér, beslag, lådor och undersida. Leta efter etiketter, märkningar och senare reparationer."
+            return "Kontrollera först att bilden faktiskt visar en möbel och inte ett föremål fotograferat på ett bord. Om det är en möbel: granska sammanfogningar, träslag, fanér, beslag, lådor och undersida. Leta efter etiketter, märkningar och senare reparationer."
         }
         if category.contains("målning") || category.contains("bild") || category.contains("tavla") {
             return "Granska signatur, färgskikt, underlag, ram och baksida. Fotografera etiketter och eventuella verkstads- eller utställningsmärken."
@@ -902,8 +897,9 @@ struct ScannerView: View {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         let terms: [(String, String)] = [
             ("tableware", "Tallrik / servis"), ("dinnerware", "Tallrik / servis"),
-            ("plate", "Tallrik"), ("dish", "Fat / tallrik"),
-            ("porcelain", "Porslin"), ("ceramic", "Keramik"),
+            ("plate", "Tallrik"), ("platter", "Serveringsfat"), ("dish", "Fat / tallrik"),
+            ("china", "Porslin"), ("porcelain", "Porslin"),
+            ("ceramic", "Keramik"),
             ("pottery", "Keramik"), ("bowl", "Skål"),
             ("cup", "Kopp"), ("mug", "Mugg"),
             ("horse", "Hästmotiv"), ("equine", "Hästmotiv"),
