@@ -7,6 +7,7 @@ struct AntiqueDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var item: SavedAntique
     @State private var selectedImages: [PhotosPickerItem] = []
+    @State private var imageImportGeneration = UUID()
     @State private var showingEvidenceForm = false
     @State private var evidenceToEdit: SavedPriceEvidence?
     @State private var showingDeleteConfirmation = false
@@ -125,17 +126,21 @@ struct AntiqueDetailView: View {
             .presentationDragIndicator(.visible)
         }
         .onChange(of: selectedImages) { _, newItems in
+            let generation = UUID()
+            imageImportGeneration = generation
             Task {
-                await importSelectedImages(newItems)
+                await importSelectedImages(newItems, generation: generation)
             }
         }
     }
 
     @MainActor
-    private func importSelectedImages(_ photos: [PhotosPickerItem]) async {
+    private func importSelectedImages(_ photos: [PhotosPickerItem], generation: UUID) async {
         for photo in photos {
-            guard let data = try? await photo.loadTransferable(type: Data.self) else { continue }
-            guard let image = UIImage(data: data) else { continue }
+            guard generation == imageImportGeneration else { return }
+            guard let data = try? await photo.loadTransferable(type: Data.self),
+                  generation == imageImportGeneration,
+                  let image = UIImage(data: data) else { continue }
             do {
                 try collection.addImage(image, to: item.id)
                 refreshItemFromCollection()
@@ -143,7 +148,10 @@ struct AntiqueDetailView: View {
                 message = error.localizedDescription
             }
         }
-        selectedImages = []
+        // An older import must not clear a newer selection in the picker.
+        if generation == imageImportGeneration {
+            selectedImages = []
+        }
     }
 
     private func refreshItemFromCollection() {
