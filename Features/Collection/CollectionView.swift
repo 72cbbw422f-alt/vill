@@ -87,8 +87,8 @@ struct CollectionView: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.bottom, 30)
-                        .safeAreaPadding(.bottom, 82)
                     }
+                    .safeAreaPadding(.bottom, 82)
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
