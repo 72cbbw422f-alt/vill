@@ -648,7 +648,7 @@ struct ScannerView: View {
 
             if !markingManufacturerMatches.isEmpty {
                 VStack(alignment: .leading, spacing: 9) {
-                    Text("MÖJLIGA TILLVERKARTRÄFFAR")
+                    Text("MÖJLIGA STÄMPELTRÄFFAR")
                         .font(.system(size: 10, weight: .semibold, design: .serif))
                         .tracking(1)
                         .foregroundStyle(AntiqueTheme.brass)
@@ -699,9 +699,11 @@ struct ScannerView: View {
     }
 
     private var markingManufacturerMatches: [(maker: String, note: String, matchedText: String, sourceTitle: String?, sourceURL: String?)] {
-        let source = [rawMarkingText, recognizedText]
-            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-            .joined(separator: "\\n")
+        // Maker references must be matched against the uncorrected marking pass only.
+        // General OCR may read descriptive text, packaging or background objects and
+        // should never create a manufacturer hit by itself.
+        let source = rawMarkingText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !source.isEmpty else { return [] }
         let normalizedSource = source.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
         let references: [(maker: String, aliases: [String], note: String, sourceTitle: String?, sourceURL: String?)] = [
             ("Rörstrand", ["Rörstrand"], "Svensk porslinsfabrik grundad 1726. Rörstrands museum beskriver flera märkningsepoker: tidiga Stockholm/Rörstrand-märkningar, kronstämpeln från 1884 och ett krönt R från 2000. En OCR-träff på namnet daterar inte föremålet i sig.", "Rörstrand Museum – Stämplar", "https://rorstrand-museum.se/stamplar/"),
