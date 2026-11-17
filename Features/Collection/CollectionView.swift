@@ -17,7 +17,9 @@ struct CollectionView: View {
         NavigationStack {
             ZStack {
                 PaperBackground()
-                if collection.items.isEmpty {
+                if let loadError = collection.loadError {
+                    recoveryState(message: loadError)
+                } else if collection.items.isEmpty {
                     emptyState
                 } else {
                     ScrollView(showsIndicators: false) {
@@ -145,6 +147,29 @@ struct CollectionView: View {
         .padding(12)
         .background(AntiqueTheme.parchment.opacity(0.65))
         .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.4), lineWidth: 1))
+    }
+
+    private func recoveryState(message: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "lock.doc")
+                .font(.system(size: 42, weight: .ultraLight))
+                .foregroundStyle(AntiqueTheme.brass)
+            Text("Samlingen är skyddad")
+                .font(AntiqueTheme.title(27))
+                .foregroundStyle(AntiqueTheme.forest)
+            BrassDivider().padding(.horizontal, 35)
+            Text(message)
+                .font(.system(size: 14, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+            Text("Stäng inte av eller installera om appen innan datafilen har undersökts.")
+                .font(.system(size: 12, weight: .medium, design: .serif))
+                .foregroundStyle(AntiqueTheme.walnut)
+                .multilineTextAlignment(.center)
+                .padding(.top, 4)
+        }
+        .padding(28)
     }
 
     private var emptyState: some View {
