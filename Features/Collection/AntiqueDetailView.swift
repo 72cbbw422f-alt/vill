@@ -520,7 +520,7 @@ private struct AddEvidenceSheet: View {
                                 .font(.system(size: 12, weight: .medium, design: .serif))
                                 .foregroundStyle(AntiqueTheme.walnut)
                             Picker("Typ", selection: $kind) {
-                                ForEach(SavedPriceEvidence.EvidenceKind.allCases) { value in
+                                ForEach(availableEvidenceKinds) { value in
                                     Text(value.title).tag(value)
                                 }
                             }
@@ -566,6 +566,16 @@ private struct AddEvidenceSheet: View {
                 }
             }
         }
+    }
+
+    // Keep legacy/unknown values visible while editing. Otherwise SwiftUI's
+    // Picker has no matching tag and may silently display a misleading selection.
+    private var availableEvidenceKinds: [SavedPriceEvidence.EvidenceKind] {
+        var values = SavedPriceEvidence.EvidenceKind.allCases
+        if case .unknown = kind {
+            values.insert(kind, at: 0)
+        }
+        return values
     }
 
     private func field(_ title: String, text: Binding<String>) -> some View {
