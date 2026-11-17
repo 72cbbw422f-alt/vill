@@ -224,10 +224,10 @@ struct ScannerView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 36)
                 }
-                // Keep the ScrollView viewport full-height. A bottom safeAreaInset
-                // here reduced the visible viewport and produced a hard horizontal
-                // clipping edge above the tab bar. Add scroll-content margin instead.
-                .contentMargins(.bottom, 124, for: .scrollContent)
+                // Match the other tab roots: reserve bottom breathing room in
+                // the scroll content without inserting a view that can shorten
+                // the ScrollView's viewport above the tab bar.
+                .safeAreaPadding(.bottom, 82)
                 .scrollIndicators(.hidden)
             }
             .toolbar(.hidden, for: .navigationBar)
