@@ -742,7 +742,7 @@ struct ScannerView: View {
                             Text(match.note)
                                 .font(.system(size: 12, design: .serif))
                                 .foregroundStyle(AntiqueTheme.ink)
-                            Text("Träff i avläst märkning: “\(match.matchedText)”")
+                            Text("Matchad text (normaliserad): “\(match.matchedText)”")
                                 .font(.system(size: 11, design: .monospaced))
                                 .foregroundStyle(AntiqueTheme.mutedInk)
                             if let sourceURL = match.sourceURL, let url = URL(string: sourceURL) {
@@ -843,9 +843,14 @@ struct ScannerView: View {
                 let normalizedAlias = alias.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
                 let escapedAlias = NSRegularExpression.escapedPattern(for: normalizedAlias)
                 let pattern = "(?<![\\p{L}\\p{N}])" + escapedAlias + "(?![\\p{L}\\p{N}])"
-                guard let expression = try? NSRegularExpression(pattern: pattern),
-                      expression.firstMatch(in: normalizedSource, range: NSRange(normalizedSource.startIndex..., in: normalizedSource)) != nil else { continue }
-                return (reference.maker, reference.note, alias, reference.sourceTitle, reference.sourceURL)
+                guard let expression = try? NSRegularExpression(pattern: pattern) else { continue }
+                let searchRange = NSRange(normalizedSource.startIndex..., in: normalizedSource)
+                guard let match = expression.firstMatch(in: normalizedSource, range: searchRange),
+                      let matchedRange = Range(match.range, in: normalizedSource) else { continue }
+                // Show the text that OCR actually matched, rather than echoing
+                // the reference alias (which may have different accents or spelling).
+                let matchedText = String(normalizedSource[matchedRange])
+                return (reference.maker, reference.note, matchedText, reference.sourceTitle, reference.sourceURL)
             }
             return nil
         }
