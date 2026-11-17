@@ -62,9 +62,11 @@ Antikspanaren/
 - [ ] Specialiserad bildbaserad antikidentifiering utan betald molntjänst
 - [ ] Källbelagd automatisk värdering från kostnadsfria och tillåtna källor
 - [x] Grundläggande Xcode-projekt med delat schema och appens behörighetsbeskrivning
-- [ ] Xcode-build och simulator-/enhetstest
+- [x] Automatisk Xcode-build för simulator och osignerad iOS-enhet via GitHub Actions
+- [ ] Manuell körning och visuell kontroll på fysisk iPhone
 - [ ] Appikon och slutlig visuell QA
-- [ ] IPA-export och signeringsflöde för sidladdning
+- [x] Automatisk paketering av osignerad IPA som CI-artifact
+- [ ] Signering och verifierad installation via sidladdning
 
 ## Integritet och behörigheter
 När Xcode-projektet sätts upp måste appens `Info.plist` innehålla `NSCameraUsageDescription` med en tydlig svensk förklaring till varför kameran används. Bildbiblioteket hanteras via PhotosPicker och kräver inte generell åtkomst till hela bildbiblioteket.
@@ -80,6 +82,6 @@ Föremålsuppgifter och bildfiler sparas lokalt i appens dokumentkatalog. Ingen 
 6. Ingen funktion får införa en löpande kostnad för användaren eller utvecklaren.
 
 ## Byggstatus
-Detta repo innehåller SwiftUI-källkod och ett första native Xcode-projekt (`Antikspanaren.xcodeproj`) med delat byggschema och svensk kamerabehörighet. Projektet och källkoden har ännu inte verifierats genom en Xcode-build. Signering och IPA-export återstår. Bildklassificeringen är generell och ska inte tolkas som en expertbedömning av antikviteter. Rekommenderad bas är iOS 17 eller senare.
+Detta repo innehåller SwiftUI-källkod och ett native Xcode-projekt (`Antikspanaren.xcodeproj`) med delat byggschema och svensk kamerabehörighet. GitHub Actions har genomfört godkända Xcode-byggen för både simulator och osignerad iOS-enhet samt paketerat en osignerad IPA. Detta verifierar kompilering och paketering, men inte att appen har startats eller visuellt testats på en fysisk iPhone. Signering och verifierad installation återstår. Bildklassificeringen är generell och ska inte tolkas som en expertbedömning av antikviteter. Rekommenderad bas är iOS 17 eller senare.
 
 För sidladdning behöver IPA-filen signeras. Gratis signering via Apple-ID har normalt en begränsad giltighetstid och måste förnyas regelbundet; det är en distributionsbegränsning, inte en kostnad från Antikspanaren.
