@@ -38,7 +38,7 @@ struct SavedPriceEvidence: Identifiable, Codable {
             case .askingPrice: return "Begärt pris"
             case .auctionEstimate: return "Auktionsvärdering"
             case .expertOpinion: return "Expertbedömning"
-            case .unknown: return "Okänd prisuppgiftstyp"
+            case .unknown(let rawValue): return "Okänd prisuppgiftstyp (\(rawValue))"
             }
         }
 
