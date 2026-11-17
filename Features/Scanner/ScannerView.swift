@@ -24,6 +24,7 @@ struct ScannerView: View {
     @State private var museumSearchError: String?
     @State private var collectionMatches: [CollectionImageMatch] = []
     @State private var isComparingCollection = false
+    @State private var scanGeneration = UUID()
 
     var body: some View {
         NavigationStack {
@@ -245,6 +246,7 @@ struct ScannerView: View {
     /// Clear every result tied to the previous photo so the next scan
     /// cannot display stale museum matches or collection comparisons.
     private func resetScanResults() {
+        scanGeneration = UUID()
         recognizedText = ""
         imageClues = []
         imageClueDetails = []
@@ -553,6 +555,7 @@ struct ScannerView: View {
 
     @MainActor
     private func searchMetCollection() async {
+        let generation = scanGeneration
         let term = museumSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !term.isEmpty else { return }
         isSearchingMuseums = true
@@ -565,6 +568,7 @@ struct ScannerView: View {
             components.queryItems = [URLQueryItem(name: "q", value: term), URLQueryItem(name: "hasImages", value: "true")]
             guard let searchURL = components.url else { throw MetSearchError.invalidURL }
             let (searchData, _) = try await URLSession.shared.data(from: searchURL)
+            guard generation == scanGeneration else { return }
             let search = try JSONDecoder().decode(MetSearchResponse.self, from: searchData)
             let ids = Array((search.objectIDs ?? []).prefix(5))
             guard !ids.isEmpty else {
@@ -577,17 +581,20 @@ struct ScannerView: View {
                 guard let url = URL(string: "https://collectionapi.metmuseum.org/public/collection/v1/objects/\(id)") else { continue }
                 do {
                     let (data, _) = try await URLSession.shared.data(from: url)
+                    guard generation == scanGeneration else { return }
                     let object = try JSONDecoder().decode(MetMuseumObject.self, from: data)
                     if object.isPublicDomain { found.append(object) }
                 } catch {
                     continue
                 }
             }
+            guard generation == scanGeneration else { return }
             museumResults = found
             if found.isEmpty {
                 museumSearchError = "Museet hittade poster, men inga bildposter kunde hämtas just nu."
             }
         } catch {
+            guard generation == scanGeneration else { return }
             museumSearchError = "Kunde inte nå museisamlingen. Kontrollera internetanslutningen och försök igen."
         }
     }
@@ -806,6 +813,7 @@ struct ScannerView: View {
         }
 
         let cgOrientation = Self.visionOrientation(for: image.imageOrientation)
+        let generation = scanGeneration
         isRecognizingText = true
         recognitionError = nil
         recognizedText = ""
@@ -861,6 +869,7 @@ struct ScannerView: View {
                 let leadingClue = rankedResults.first?.label
 
                 DispatchQueue.main.async {
+                    guard generation == scanGeneration else { return }
                     recognizedText = result
                     imageClues = Array(clues)
                     imageClueDetails = Array(clueDetails)
@@ -873,6 +882,7 @@ struct ScannerView: View {
                 }
             } catch {
                 DispatchQueue.main.async {
+                    guard generation == scanGeneration else { return }
                     recognitionError = "Texten kunde inte läsas just nu. Försök igen med en ny bild."
                     isRecognizingText = false
                 }
