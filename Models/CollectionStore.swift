@@ -176,6 +176,12 @@ final class CollectionStore: ObservableObject {
     func update(_ updated: SavedAntique) throws {
         guard let index = items.firstIndex(where: { $0.id == updated.id }) else { return }
         let previous = items[index]
+        // Image references are managed only by add/remove image operations.
+        // A metadata edit must not silently detach files or attach arbitrary paths.
+        guard updated.imageFileName == previous.imageFileName,
+              updated.additionalImageFileNames == previous.additionalImageFileNames else {
+            throw StoreError.imageReferencesCannotBeChanged
+        }
         items[index] = updated
         do { try persist() }
         catch { items[index] = previous; throw error }
@@ -289,11 +295,14 @@ final class CollectionStore: ObservableObject {
 
     enum StoreError: LocalizedError {
         case imageEncodingFailed
+        case imageReferencesCannotBeChanged
         case recoveryRequired
         var errorDescription: String? {
             switch self {
             case .imageEncodingFailed:
                 return "Bilden kunde inte sparas. Försök med en annan bild."
+            case .imageReferencesCannotBeChanged:
+                return "Bildreferenser kan bara ändras genom att lägga till eller ta bort bilder i bildgalleriet."
             case .recoveryRequired:
                 return "Samlingen är skrivskyddad eftersom tidigare sparade data inte kunde läsas. Originalfilen har inte ändrats."
             }
