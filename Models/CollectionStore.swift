@@ -28,7 +28,7 @@ struct SavedPriceEvidence: Identifiable, Codable {
             case .askingPrice: return "askingPrice"
             case .auctionEstimate: return "auctionEstimate"
             case .expertOpinion: return "expertOpinion"
-            case .unknown(let rawValue): return "unknown-\\(rawValue)"
+            case .unknown(let rawValue): return "unknown-\(rawValue)"
             }
         }
 
