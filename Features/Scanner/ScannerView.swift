@@ -779,7 +779,13 @@ struct ScannerView: View {
         // should never create a manufacturer hit by itself.
         let source = rawMarkingText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !source.isEmpty else { return [] }
-        let normalizedSource = source.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        // OCR often splits a two-word maker name across lines or inserts
+        // repeated whitespace. Collapse whitespace before matching so those
+        // harmless layout differences do not hide a genuine stamp candidate.
+        let normalizedSource = source
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .split(whereSeparator: { $0.isWhitespace })
+            .joined(separator: " ")
         let references: [(maker: String, aliases: [String], note: String, sourceTitle: String?, sourceURL: String?)] = [
             ("Rörstrand", ["Rörstrand"], "Svensk porslinsfabrik grundad 1726. Rörstrands museum beskriver flera märkningsepoker: tidiga Stockholm/Rörstrand-märkningar, kronstämpeln från 1884 och ett krönt R från 2000. En OCR-träff på namnet daterar inte föremålet i sig.", "Rörstrand Museum – Stämplar", "https://rorstrand-museum.se/stamplar/"),
             ("Gustavsberg", ["Gustavsberg"], "Porslinsfabriken grundades 1825. Den klassiska ankarmärkningen infördes 1839. Kontrollera ankarets utformning och eventuell formgivar- eller modellmärkning mot föremålet.", "Gustafsbergs Porslinsfabrik – Historik", "https://www.gustavsberg.com/se/om-oss/var-historia"),
