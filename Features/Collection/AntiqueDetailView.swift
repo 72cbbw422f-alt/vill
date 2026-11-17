@@ -833,10 +833,8 @@ private enum AntiquePriceInput {
 
         let plainPattern = #"^[0-9]+(?:,[0-9]{1,2})?$"#
         let groupedPattern = #"^[0-9]{1,3}(?:\\.[0-9]{3})+(?:,[0-9]{1,2})?$"#
-        let spacedPattern = #"^[0-9]{1,3}(?:[ \\u{00a0}\\u{202f}][0-9]{3})+(?:,[0-9]{1,2})?$"#
         let valid = compact.range(of: plainPattern, options: .regularExpression) != nil
             || compact.range(of: groupedPattern, options: .regularExpression) != nil
-            || trimmed.range(of: spacedPattern, options: .regularExpression) != nil
         guard valid,
               let decimal = Decimal(string: compact.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: "."), locale: Locale(identifier: "en_US_POSIX")),
               decimal > 0 else { return nil }
