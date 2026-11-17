@@ -111,12 +111,7 @@ struct ScannerView: View {
                                     guard let data = try? await item?.loadTransferable(type: Data.self),
                                           let selectedImage = UIImage(data: data) else { return }
                                     image = selectedImage
-                                    recognizedText = ""
-                                    imageClues = []
-                                    imageClueDetails = []
-                                    primaryClue = nil
-                                    rawMarkingText = ""
-                                    recognitionError = nil
+                                    resetScanResults()
                                 }
                             }
 
@@ -230,12 +225,7 @@ struct ScannerView: View {
             .toolbar(.hidden, for: .navigationBar)
             .onChange(of: image) { _, newImage in
                 guard newImage != nil else { return }
-                recognizedText = ""
-                imageClues = []
-                imageClueDetails = []
-                primaryClue = nil
-                rawMarkingText = ""
-                recognitionError = nil
+                resetScanResults()
             }
             .sheet(isPresented: $showingCamera) {
                 CameraPicker(image: $image).ignoresSafeArea()
@@ -251,6 +241,24 @@ struct ScannerView: View {
         }
     }
 
+
+    /// Clear every result tied to the previous photo so the next scan
+    /// cannot display stale museum matches or collection comparisons.
+    private func resetScanResults() {
+        recognizedText = ""
+        imageClues = []
+        imageClueDetails = []
+        primaryClue = nil
+        rawMarkingText = ""
+        recognitionError = nil
+        museumResults = []
+        museumSearchText = ""
+        sourceSearchText = ""
+        museumSearchError = nil
+        collectionMatches = []
+        isSearchingMuseums = false
+        isComparingCollection = false
+    }
 
     private var collectionComparisonPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
