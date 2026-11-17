@@ -327,9 +327,14 @@ struct ScannerView: View {
     private func compareWithCollection() {
         guard let image, let queryCGImage = image.cgImage else { return }
         let generation = scanGeneration
-        let candidates = collection.items.compactMap { item -> (String, UIImage)? in
-            guard let candidateImage = collection.image(for: item) else { return nil }
-            return (item.title, candidateImage)
+        // Compare every saved photo, not only the cover image. Keep the
+        // best visual distance per collection item so objects with several
+        // detail shots get a fairer comparison without appearing repeatedly.
+        let candidates = collection.items.flatMap { item in
+            item.allImageFileNames.compactMap { filename -> (UUID, String, UIImage)? in
+                guard let candidateImage = collection.image(named: filename) else { return nil }
+                return (item.id, item.title, candidateImage)
+            }
         }
         guard !candidates.isEmpty else {
             collectionMatches = []
@@ -338,13 +343,13 @@ struct ScannerView: View {
         isComparingCollection = true
         collectionMatches = []
         DispatchQueue.global(qos: .userInitiated).async {
-            var matches: [(title: String, distance: Float)] = []
+            var bestMatches: [UUID: (title: String, distance: Float)] = [:]
             let queryRequest = VNGenerateImageFeaturePrintRequest()
             queryRequest.imageCropAndScaleOption = .centerCrop
             do {
                 try VNImageRequestHandler(cgImage: queryCGImage, orientation: CGImagePropertyOrientation(image.imageOrientation)).perform([queryRequest])
                 guard let queryPrint = queryRequest.results?.first else { throw NSError(domain: "Antikspanaren", code: 1) }
-                for (title, candidate) in candidates {
+                for (itemID, title, candidate) in candidates {
                     guard let cgImage = candidate.cgImage else { continue }
                     let request = VNGenerateImageFeaturePrintRequest()
                     request.imageCropAndScaleOption = .centerCrop
@@ -352,9 +357,15 @@ struct ScannerView: View {
                     guard let candidatePrint = request.results?.first else { continue }
                     var distance: Float = 0
                     try queryPrint.computeDistance(&distance, to: candidatePrint)
-                    matches.append((title, distance))
+                    if let previous = bestMatches[itemID] {
+                        if distance < previous.distance {
+                            bestMatches[itemID] = (title, distance)
+                        }
+                    } else {
+                        bestMatches[itemID] = (title, distance)
+                    }
                 }
-                let sorted = matches.sorted { $0.distance < $1.distance }.prefix(3)
+                let sorted = bestMatches.values.sorted { $0.distance < $1.distance }.prefix(3)
                 DispatchQueue.main.async {
                     guard generation == scanGeneration else { return }
                     collectionMatches = sorted.map { CollectionImageMatch(title: $0.title, distance: $0.distance) }
