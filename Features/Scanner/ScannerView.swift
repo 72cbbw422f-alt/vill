@@ -649,10 +649,18 @@ struct ScannerView: View {
                     .foregroundStyle(AntiqueTheme.mutedInk)
             }
 
-            reportRow("Material", "Inte fastställt från bilden. Kontrollera godsets yta, vikt, genomlysning, ljud och konstruktion där det är lämpligt.")
-            reportRow("Tillverkare", "Inte verifierad. Kräver en tydlig hel stämpel, signatur, etikett eller dokumenterad jämförelse.")
-            reportRow("Ålder och ursprung", "Inte fastställda. Bedöm mot märkning, form, tillverkningsteknik och dokumenterade jämförelseföremål.")
-            reportRow("Marknadsvärde", "Ingen värdering ännu. Kräver jämförbara avslutade försäljningar av samma eller nära besläktad modell.");
+            VStack(alignment: .leading, spacing: 8) {
+                Text("VAD SOM ÅTERSTÅR ATT FASTSTÄLLA")
+                    .font(.system(size: 10, weight: .semibold, design: .serif))
+                    .tracking(1)
+                    .foregroundStyle(AntiqueTheme.brass)
+                reportRow("Material", "Kräver kontroll av yta, vikt, genomlysning och konstruktion.")
+                reportRow("Tillverkare och ålder", "Kräver en läsbar hel märkning eller jämförelse med dokumenterade modeller.")
+                reportRow("Värde", "Kräver jämförbara avslutade försäljningar – inte utropspriser eller lösa annonser.")
+            }
+            .padding(12)
+            .background(AntiqueTheme.paper.opacity(0.75))
+            .overlay(RoundedRectangle(cornerRadius: 4).stroke(AntiqueTheme.brass.opacity(0.35)))
 
             if !rawMarkingText.isEmpty && rawMarkingText != recognizedText {
                 VStack(alignment: .leading, spacing: 5) {
@@ -712,9 +720,6 @@ struct ScannerView: View {
                         .foregroundStyle(AntiqueTheme.ink)
                 }
             }
-            Text("Analysen görs på telefonen. Slutsatser om äkthet, datering och värde kräver fortsatt undersökning.")
-                .font(.system(size: 11, design: .serif))
-                .foregroundStyle(AntiqueTheme.mutedInk)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
