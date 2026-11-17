@@ -10,6 +10,9 @@ struct SavedPriceEvidence: Identifiable, Codable {
     var date: Date?
     var url: String
     var notes: String
+    var itemCondition: String? = nil
+    var modelDetails: String? = nil
+    var comparabilityNotes: String? = nil
 
     enum EvidenceKind: Codable, CaseIterable, Identifiable, Hashable {
         case realizedSale
