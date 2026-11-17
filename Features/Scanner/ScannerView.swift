@@ -1071,6 +1071,12 @@ private struct SaveAntiqueSheet: View {
                         field("Ursprung och proveniens", placeholder: "Tidigare ägare, inköpsplats eller historia", text: $provenance)
                         field("Inköpspris i kronor", placeholder: "Lämna tomt om okänt", text: $purchasePrice)
                             .keyboardType(.decimalPad)
+                        if !purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            && AntiquePriceInput.normalized(purchasePrice) == nil {
+                            Text("Ange ett positivt belopp, exempelvis 1250 eller 1250,50.")
+                                .font(.system(size: 11, design: .serif))
+                                .foregroundStyle(.red)
+                        }
 
                         Text("Fyll bara i det du känner till. Okända uppgifter kan lämnas tomma – det är bättre än att gissa.")
                             .font(.system(size: 12, design: .serif))
@@ -1103,6 +1109,8 @@ private struct SaveAntiqueSheet: View {
                                 .background(AntiqueTheme.forest)
                                 .clipShape(RoundedRectangle(cornerRadius: 5))
                         }
+                        .disabled(!purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                  && AntiquePriceInput.normalized(purchasePrice) == nil)
                     }
                     .padding(22)
                 }
@@ -1138,7 +1146,10 @@ private struct SaveAntiqueSheet: View {
         }
 
         do {
-            try collection.add(title: title, maker: maker, notes: combinedNotes, purchasePrice: purchasePrice, image: image, estimatedPeriod: estimatedPeriod, materials: materials, markings: markings, conditionNotes: conditionNotes, provenance: provenance)
+            let normalizedPurchasePrice = purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? ""
+                : (AntiquePriceInput.normalized(purchasePrice) ?? purchasePrice)
+            try collection.add(title: title, maker: maker, notes: combinedNotes, purchasePrice: normalizedPurchasePrice, image: image, estimatedPeriod: estimatedPeriod, materials: materials, markings: markings, conditionNotes: conditionNotes, provenance: provenance)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
