@@ -378,6 +378,15 @@ struct AntiqueDetailView: View {
                                     .textSelection(.enabled)
                             }
                         }
+                        if let condition = evidence.itemCondition, !condition.isEmpty {
+                            evidenceDetail(label: "SKICK", value: condition)
+                        }
+                        if let model = evidence.modelDetails, !model.isEmpty {
+                            evidenceDetail(label: "MODELL / UTFÖRANDE", value: model)
+                        }
+                        if let comparison = evidence.comparabilityNotes, !comparison.isEmpty {
+                            evidenceDetail(label: "JÄMFÖRBARHET", value: comparison)
+                        }
                         if !evidence.notes.isEmpty {
                             Text(evidence.notes)
                                 .font(.system(size: 12, design: .serif))
@@ -404,6 +413,18 @@ struct AntiqueDetailView: View {
                     BrassDivider()
                 }
             }
+        }
+    }
+
+    private func evidenceDetail(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.system(size: 9, weight: .semibold, design: .serif))
+                .tracking(0.7)
+                .foregroundStyle(AntiqueTheme.brass)
+            Text(value)
+                .font(.system(size: 12, design: .serif))
+                .foregroundStyle(AntiqueTheme.mutedInk)
         }
     }
 
@@ -570,6 +591,9 @@ private struct AddEvidenceSheet: View {
     @State private var kind: SavedPriceEvidence.EvidenceKind
     @State private var url: String
     @State private var notes: String
+    @State private var itemCondition: String
+    @State private var modelDetails: String
+    @State private var comparabilityNotes: String
     @State private var evidenceDate: Date
 
     init(evidence: SavedPriceEvidence? = nil, onAdd: @escaping (SavedPriceEvidence) -> Void) {
@@ -579,6 +603,9 @@ private struct AddEvidenceSheet: View {
         _kind = State(initialValue: evidence?.kind ?? .realizedSale)
         _url = State(initialValue: evidence?.url ?? "")
         _notes = State(initialValue: evidence?.notes ?? "")
+        _itemCondition = State(initialValue: evidence?.itemCondition ?? "")
+        _modelDetails = State(initialValue: evidence?.modelDetails ?? "")
+        _comparabilityNotes = State(initialValue: evidence?.comparabilityNotes ?? "")
         _evidenceDate = State(initialValue: evidence?.date ?? Date())
         _editingID = State(initialValue: evidence?.id)
     }
@@ -620,11 +647,14 @@ private struct AddEvidenceSheet: View {
                             .tint(AntiqueTheme.forest)
 
                         field("Länk till källan (om finns)", text: $url)
+                        field("Skick på jämförelseobjektet", text: $itemCondition)
+                        field("Modell, serie eller utförande", text: $modelDetails)
+                        field("Hur väl går det att jämföra?", text: $comparabilityNotes)
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Anteckning")
                                 .font(.system(size: 12, weight: .medium, design: .serif))
                                 .foregroundStyle(AntiqueTheme.walnut)
-                            TextField("Datum, skick, modell och jämförbarhet …", text: $notes, axis: .vertical)
+                            TextField("Övriga uppgifter om försäljningen …", text: $notes, axis: .vertical)
                                 .lineLimit(2...4)
                                 .padding(11)
                                 .background(AntiqueTheme.parchment.opacity(0.7))
@@ -646,7 +676,10 @@ private struct AddEvidenceSheet: View {
                                                  sourceName: sourceName.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  amount: normalizedAmount ?? amount.trimmingCharacters(in: .whitespacesAndNewlines),
                                                  kind: kind, date: evidenceDate, url: url.trimmingCharacters(in: .whitespacesAndNewlines),
-                                                 notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)))
+                                                 notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 itemCondition: itemCondition.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : itemCondition.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 modelDetails: modelDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : modelDetails.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 comparabilityNotes: comparabilityNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : comparabilityNotes.trimmingCharacters(in: .whitespacesAndNewlines)))
                         dismiss()
                     }
                     .disabled(sourceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !hasValidAmount)
