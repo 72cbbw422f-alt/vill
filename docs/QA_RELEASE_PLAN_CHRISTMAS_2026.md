@@ -116,7 +116,8 @@ Ingen källa får markeras som fungerande förrän en verklig, aktuell listning 
 - Commit `d023e53b7b99f59dcaa3a34904ef9f3183292025`.
 - `Features/Home/HomeView.swift` visar nu upp till två senast sparade föremål med bild, tillverkare, antal bilder och prisreferenser. Tom samling får en särskild vägledande vy.
 - Ändringen använder befintlig lokal `CollectionStore`; inga externa tjänster eller kostnader tillkommer.
-- CI-körning #129 av första committen och #130 av den uppdaterade committen har startats. Vid senaste kontroll står #130 fortfarande som `in_progress`; inga byggsteg efter appikongenerering har rapporterats färdiga ännu. Fysisk visuell kontroll är inte genomförd.
+- PR #2 är staplad ovanpå PR #1 (`fix/pdf-evidence-compiler-complexity`) eftersom basgrenen `main` ännu innehåller det tidigare kompilatorfelet. PR #1 måste integreras före PR #2.
+- CI-körning #129 och #130 startades mot tidigare bas `main`; de är inte slutlig verifiering av den staplade PR:en. Ny CI inväntas efter ändringen av PR-bas. Fysisk visuell kontroll är inte genomförd.
 - Ingen merge till `main` har gjorts.
 
 ## Releasebeslut
@@ -127,4 +128,4 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 |---|---|---|---|
 | 2026-11-25 | `qa/christmas-release-readiness` / bas `8cde3cd` | Skapade QA- och releaseplan; begärde omkörning av tidigare avbruten CI-körning #127 | Dokumentation skapad |
 | 2026-11-25 | `fix/pdf-evidence-compiler-complexity` / `73922b3` | Förenklade PDF-detaljsträngar; CI #128 | Simulator, iOS-enhetsbygge och osignerad IPA godkända; PR #1 ej mergad |
-| 2026-11-25 | `feature/home-collection-dashboard` / `d023e53` | Startsidan visar senaste sparade föremål; PR #2 | CI #130 pågår; fysisk QA ej utförd |
+| 2026-11-25 | `feature/home-collection-dashboard` / `d023e53` | Startsidan visar senaste sparade föremål; PR #2 | Ny CI efter basändring inväntas; fysisk QA ej utförd |
