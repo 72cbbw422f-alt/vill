@@ -291,3 +291,20 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 
 - CI-körning #137 (run ID `45637278612`) har startat för den nya korrigeringscommiten `240375792ee0cb363c695c5bc106b343cc7e312d`. Vid dokumentationstillfället har setup, checkout och Xcode-val passerat; appikongenerering pågår och simulator-/enhetsbygge samt IPA-paketering väntar.
 - Workflow-filen `.github/workflows/ios-build.yml` innehåller endast kompilering och IPA-paketering/uppladdning; den kör inga XCTest- eller UI-test. Projektfilen visar ett enda app-target och inget separat testtarget. Därför ska CI-resultatet beskrivas som byggverifiering, inte automatiserad funktionstestning.
+
+
+## Uppdatering 2026-11-25 – CI #137 och bildborttagning
+- CI #137 (run ID `45637278612`) avslutades med success för exakt commit `240375792ee0cb363c695c5bc106b343cc7e312d`. Alla byggsteg passerade inklusive simulator, osignerat iOS-enhetsbygge, IPA-paketering och uppladdning.
+- Artifact-ID `15034511250`, 762 651 byte. Nedladdad ZIP SHA-256 matchar GitHub digest: `e7e11c1c1d406847f3bfe8cc5f7f5ca8b0aa622f615fa66a03400366e63eba83`.
+- ZIP innehåller IPA; IPA packades upp och `Payload/Antikspanaren.app` verifierades. Info.plist: bundle `se.antikspanaren.app`, version `0.1.0` build `1`, MinimumOSVersion `17.0`, device families `[1, 2]`, kamerabeskrivning finns. Appens körbara fil är arm64 Mach-O. Signering/installation/körning har inte verifierats.
+- Fortsatt granskning hittade samma utkastförlust vid borttagning av extrabild: detaljvyn ersatte hela lokala utkastet efter att bildreferenserna ändrats i lagringen.
+- Åtgärdat på `feature/home-collection-dashboard`, commit `c30101a667400cd1b050d998d113dcc81f6dc06e`, fil `Features/Collection/AntiqueDetailView.swift`. Borttagning använder nu samma avgränsade `refreshImageReferencesFromCollection()` som importen och bevarar osparade metadatafält.
+- CI för commit `c30101a667400cd1b050d998d113dcc81f6dc06e` inväntas. Ändringen är ännu inte byggverifierad.
+- PR #2 fortsatt öppen/draft; main oförändrad.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / 2403757 | CI #137 samt ZIP-digest, IPA-struktur, Info.plist och arm64-binär verifierade | Bygg och arkiv godkända; osignerad; ingen fysisk QA |
+| 2026-11-25 | feature/home-collection-dashboard / c30101a | Bildborttagning uppdaterar endast bildreferenser så osparade redigeringar bevaras | Kodändring incheckad; CI inväntas |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade CI #137, IPA-kontroll och uppföljande buggfix | Dokumentation uppdaterad |
