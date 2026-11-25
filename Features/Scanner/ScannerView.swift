@@ -87,7 +87,7 @@ struct ScannerView: View {
                         VStack(spacing: 12) {
                             if UIImagePickerController.isSourceTypeAvailable(.camera) {
                                 Button {
-                                    showingCamera = true
+                                    openCamera()
                                 } label: {
                                     Label("Ta ett foto", systemImage: "camera")
                                         .font(.system(size: 16, weight: .medium, design: .serif))
@@ -287,6 +287,18 @@ struct ScannerView: View {
         }
     }
 
+
+    /// Open the camera without allowing an in-flight PhotosPicker load
+    /// to replace the newly captured image when its asynchronous read finishes.
+    private func openCamera() {
+        photoLoadGeneration = UUID()
+        selectedPhoto = nil
+        isLoadingPhoto = false
+        photoLoadError = nil
+        image = nil
+        resetScanResults()
+        showingCamera = true
+    }
 
     /// Clear every result tied to the previous photo so the next scan
     /// cannot display stale museum matches or collection comparisons.
