@@ -126,10 +126,14 @@ struct HomeView: View {
         }
     }
 
+    private var recentItems: [SavedAntique] {
+        Array(collection.items.sorted { $0.createdAt > $1.createdAt }.prefix(2))
+    }
+
     private var collectionPreview: some View {
         VStack(alignment: .leading, spacing: 13) {
             HStack(alignment: .firstTextBaseline) {
-                sectionHeading("Ur din samling", eyebrow: "DINA FÖREMÅL")
+                sectionHeading("Ur din samling", eyebrow: "SENAST TILLAGDA")
                 Spacer()
                 Text("\(collection.items.count) SPARADE")
                     .font(.system(size: 9, weight: .semibold, design: .serif))
@@ -159,7 +163,7 @@ struct HomeView: View {
                     Rectangle().fill(AntiqueTheme.brass).frame(width: 2)
                 }
             } else {
-                ForEach(Array(collection.items.prefix(2))) { item in
+                ForEach(recentItems) { item in
                     NavigationLink {
                         AntiqueDetailView(item: item)
                     } label: {
