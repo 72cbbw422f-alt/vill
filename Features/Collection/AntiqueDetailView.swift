@@ -580,9 +580,7 @@ struct AntiqueDetailView: View {
     private func removePhoto(_ filename: String) {
         do {
             try collection.removeAdditionalImage(filename, from: item.id)
-            if let refreshed = collection.items.first(where: { $0.id == item.id }) {
-                item = refreshed
-            }
+            refreshImageReferencesFromCollection()
             message = "Bilden har tagits bort."
         } catch {
             message = error.localizedDescription
