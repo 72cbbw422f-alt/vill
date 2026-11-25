@@ -214,3 +214,21 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 |---|---|---|---|
 | 2026-11-25 | feature/home-collection-dashboard / 8b29fd0 | Invalidera pågående bildläsning från PhotosPicker när kameran öppnas; förhindra att gammal asynkron bild ersätter ny kamerabild | Kodändring incheckad; CI inväntas; fysisk QA ej utförd |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade hittad kapplöpning, lösning och kvarvarande verifiering | Dokumentation uppdaterad |
+
+
+## Uppdatering 2026-11-25 – CI #134, IPA-kontroll och korrigerad kamerarace
+- CI #134 (run ID 45632920718) avslutades med success för commit `8b29fd05de00356247d1a40677e4a4a2927de293`. Samtliga steg passerade: checkout, Xcode-val, appikon, simulatorbygge, osignerat iOS-enhetsbygge, IPA-paketering och uppladdning.
+- Artifact-ID `15032281937`, `Antikspanaren-unsigned-IPA`, 760 655 byte. SHA-256 verifierad lokalt och matchar GitHub-digest: `08562522824112b640940af60bedf5508d162f47021de931fff5b9cb08eb2cf5`.
+- ZIP innehåller `Antikspanaren-unsigned.ipa`; IPA innehåller `Payload/Antikspanaren.app`. Info.plist verifierad: bundle ID `se.antikspanaren.app`, version `0.1.0`, build `1`, minimum iOS `17.0`, enhetsfamilj `[1, 2]`. Kamerabehörighetens användningstext finns.
+- Viktig rättelse efter ytterligare granskning: commit `8b29fd0` invaliderade inte faktiskt bildladdningen i kameraknappens action. Hjälpfunktionen/hanteringen av null-val fanns, men kameraknappen anropade inte invalideringen. Därför var den dokumenterade kamerarace-fixen inte fullständigt inkopplad i den commit som CI #134 byggde.
+- Korrigering incheckad på samma feature-branch i commit `2569d8dd92e326014a011623581e96d0ed382aa3`, fil `Features/Scanner/ScannerView.swift`: kameraknappen anropar nu `openCamera()`, som först byter generations-ID (invaliderar pågående PhotosPicker-load), nollställer valt foto/laddningsstatus/fel, rensar gammal bild och analys och öppnar därefter kameran.
+- CI #134 verifierar alltså commit `8b29fd0`, inte den nyare korrigeringen `2569d8d`. Ny CI för `2569d8d` inväntas; den nya ändringen är ännu inte byggverifierad.
+- Ingen fysisk iPhone-QA har utförts. IPA är osignerad; signering, installation och verklig kamera-/bildväljar-/OCR-testning återstår.
+- PR #2 är draft/open och ej mergad. `main` är oförändrad på `8cde3cd6072f4c318d31aeb8ff86f68bd1d91ad9`.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / 8b29fd0 | CI #134 och IPA-kontroll; SHA-256 och Info.plist verifierade | CI och arkivkontroll godkända för 8b29fd0; IPA osignerad |
+| 2026-11-25 | feature/home-collection-dashboard / 2569d8d | Kopplade kameraknappen till openCamera() så PhotosPicker-load invalideras före kamerastart | Kod incheckad; ny CI inväntas; fysisk QA ej utförd |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade CI #134, artifactdigest, IPA-metadata och rättelsen av den ofullständiga tidigare kamerafixen | Dokumentation uppdaterad |
