@@ -27,18 +27,19 @@ Säkerställa att en stabil, installerbar iPhone-version kan överlämnas som ju
 - CI-workflow: `.github/workflows/ios-build.yml`
 - XcodeGen: inte konfigurerat; projektet är ett native Xcode-projekt.
 - Separat XCTest-target: inte identifierat i projektfilen.
-- Senaste körningen vid baslinjen (#127) hade conclusion `failure`; jobbet var `cancelled` och hade inga steg registrerade. En omkörning begärdes 2026-11-25 och behöver följas upp.
+- Baslinjekörning #127 misslyckades i simulatorbygget på grund av ett Swift-kompilatorfel. Korrigeringen på PR #1 verifierades därefter med fullständigt godkänd CI-körning #128.
 - Historisk lyckad körning #123 byggde simulator, osignerad iOS-app och laddade upp IPA-artifact. Detta är inte bevis för fysisk enhetsinstallation.
 - README anger lokal lagring och kamerabaserad scanner. Externa auktionsintegrationer och fysisk iPhone-QA är inte verifierade.
 
 ## Releasegrindar
 
 ### A. CI och kompilering
-- [ ] Senaste huvudgrenens CI avslutas med success.
-- [ ] Simulatorbyggning godkänd.
-- [ ] Releasebyggning för generisk iOS-enhet godkänd.
-- [ ] Appikon genereras utan fel.
-- [ ] CI-loggar och commit-SHA sparas i releaseprotokollet.
+- [x] CI-körning #128 för korrigerings-PR #1 avslutades med success.
+- [x] Simulatorbyggning godkänd i #128.
+- [x] Releasebyggning för generisk iOS-enhet godkänd i #128.
+- [x] Appikon genereras utan fel i #128.
+- [x] CI-loggar och commit-SHA dokumenterade för #128.
+- [ ] Ändringen är ännu inte integrerad i `main`; huvudgrenens releasegrind är därför inte slutligt godkänd.
 
 ### B. IPA och signering
 - [ ] IPA-artifact finns för exakt releasecommit.
@@ -104,9 +105,19 @@ Ingen källa får markeras som fungerande förrän en verklig, aktuell listning 
 - En avgränsad korrigering har gjorts på `fix/pdf-evidence-compiler-complexity`, commit `73922b37077cf735ec1088211d8fdcbf6b87a9d7`.
 - Ändringen ersätter den komplexa array-/optional-kedjan med en explicit `[String]` och stegvisa tillägg. Samma etiketter och innehåll behålls.
 - Draft PR: https://github.com/72cbbw422f-alt/vill/pull/1
-- CI-körning #128 för PR-commiten startades och är under körning vid dokumentationstillfället. Ingen merge till `main` har gjorts.
+- CI-körning #128 för PR-commiten avslutades med `success` 2026-11-25. Alla åtta steg passerade: checkout, Xcode-val, appikon, simulatorbygge, iOS-enhetsbygge, IPA-paketering och uppladdning.
+- Artifact `Antikspanaren-unsigned-IPA` skapades (ca 727 kB; SHA-256 `acc77bdf35b819951dac935ea47f64b9bb10338256cc6fb125cd95692408880a`). Artifact är osignerad och har inte installerats på fysisk iPhone.
+- PR #1 är fortsatt draft och ej mergad. Ingen ändring har gjorts på `main`.
 - Berörd kodfil: `Features/Collection/AntiqueDetailView.swift`.
-- Ändringen är inte verifierad förrän simulatorbygge, enhetsbygge och IPA-paketering i CI har godkänts.
+
+## Uppdatering 2026-11-25 – startsidans samlingsöversikt
+- Ny oberoende feature-branch: `feature/home-collection-dashboard`.
+- PR #2: https://github.com/72cbbw422f-alt/vill/pull/2
+- Commit `d023e53b7b99f59dcaa3a34904ef9f3183292025`.
+- `Features/Home/HomeView.swift` visar nu upp till två senast sparade föremål med bild, tillverkare, antal bilder och prisreferenser. Tom samling får en särskild vägledande vy.
+- Ändringen använder befintlig lokal `CollectionStore`; inga externa tjänster eller kostnader tillkommer.
+- CI-körning #129 pågår vid dokumentationstillfället. Fysisk visuell kontroll är inte genomförd.
+- Ingen merge till `main` har gjorts.
 
 ## Releasebeslut
 Release får godkännas först när CI och IPA-grindarna är gröna, installation är verifierad på fysisk iPhone och alla funktioner som marknadsförs som fungerande har dokumenterade testresultat. Externa källor som inte kan verifieras ska uttryckligen anges som ej tillgängliga eller ej färdiga.
@@ -114,4 +125,6 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 ## Arbetslogg
 | Datum | Gren/commit | Ändring/test | Resultat |
 |---|---|---|---|
-| 2026-11-25 | `qa/christmas-release-readiness` / bas `8cde3cd` | Skapade QA- och releaseplan; begärde omkörning av tidigare avbruten CI-körning #127 | Dokumentation skapad; CI-omkörning inväntas |
+| 2026-11-25 | `qa/christmas-release-readiness` / bas `8cde3cd` | Skapade QA- och releaseplan; begärde omkörning av tidigare avbruten CI-körning #127 | Dokumentation skapad |
+| 2026-11-25 | `fix/pdf-evidence-compiler-complexity` / `73922b3` | Förenklade PDF-detaljsträngar; CI #128 | Simulator, iOS-enhetsbygge och osignerad IPA godkända; PR #1 ej mergad |
+| 2026-11-25 | `feature/home-collection-dashboard` / `d023e53` | Startsidan visar senaste sparade föremål; PR #2 | CI #129 inväntas; fysisk QA ej utförd |
