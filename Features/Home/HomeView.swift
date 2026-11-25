@@ -210,6 +210,8 @@ struct HomeView: View {
                         .background(AntiqueTheme.parchment.opacity(0.72))
                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.35), lineWidth: 1))
                         .contentShape(Rectangle())
+                        .accessibilityElement(children: .combine)
+                        .accessibilityHint("Öppnar föremålets dokumentation")
                     }
                     .buttonStyle(.plain)
                 }
