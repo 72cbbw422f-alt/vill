@@ -248,3 +248,19 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 |---|---|---|---|
 | 2026-11-25 | feature/home-collection-dashboard / 2569d8d | CI #135, nedladdad IPA, SHA-256 och Info.plist/Mach-O kontrollerade | Alla byggsteg godkända; arkiv verifierat; osignerad IPA |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade slutlig CI #135 och verifierad IPA för exakt feature-head | Dokumentation uppdaterad |
+
+
+## Uppdatering 2026-11-25 – tydligare felhantering vid import av extrabilder
+- Kodgranskning av `AntiqueDetailView.importSelectedImages` visade att misslyckad `PhotosPickerItem.loadTransferable` eller ogiltig bilddata tidigare ignorerades tyst. Användaren kunde därför inte se att en eller flera valda bilder aldrig lades till.
+- Ändrat på `feature/home-collection-dashboard`, commit `2012831ab4d578cf1f3ffc4cda3d18eb2d201dec`, fil `Features/Collection/AntiqueDetailView.swift`.
+- Importen räknar nu misslyckade bilder och visar ett tydligt resultat efter batchen: alla misslyckades, vissa misslyckades eller samtliga lades till. Första konkreta felorsaken visas när den finns.
+- Befintligt generationsskydd är kvar: en äldre import får inte rensa en nyare PhotosPicker-selektion. Varje bild som lyckas sparas via befintlig atomisk `CollectionStore.addImage`-funktion.
+- Ändringen är incheckad men ännu inte byggverifierad. CI för exakt commit `2012831` inväntas. Fysisk iPhone-testning av flerbildsimport återstår.
+- CI #135 för föregående commit `2569d8d` är godkänd; den verifierar inte den nya felhanteringen.
+- PR #2 är fortsatt draft/open och ej mergad. `main` är oförändrad.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / 2012831 | Visa antal misslyckade extrabildsimporter och första felorsak i stället för att ignorera fel tyst | Kod incheckad; ny CI inväntas; fysisk QA återstår |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade importfelhantering och tydlig gräns mellan föregående CI och senaste commit | Dokumentation uppdaterad |
