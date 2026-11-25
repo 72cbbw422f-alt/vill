@@ -232,3 +232,19 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 | 2026-11-25 | feature/home-collection-dashboard / 8b29fd0 | CI #134 och IPA-kontroll; SHA-256 och Info.plist verifierade | CI och arkivkontroll godkända för 8b29fd0; IPA osignerad |
 | 2026-11-25 | feature/home-collection-dashboard / 2569d8d | Kopplade kameraknappen till openCamera() så PhotosPicker-load invalideras före kamerastart | Kod incheckad; ny CI inväntas; fysisk QA ej utförd |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade CI #134, artifactdigest, IPA-metadata och rättelsen av den ofullständiga tidigare kamerafixen | Dokumentation uppdaterad |
+
+
+## Uppdatering 2026-11-25 – CI #135 och slutlig kamerakorrigering
+- CI #135 (run ID `45633752988`) avslutades med `success` för exakt feature-head `2569d8dd92e326014a011623581e96d0ed382aa3`.
+- Samtliga åtta steg passerade: checkout, Xcode-val, appikon, simulatorbygge, osignerat iOS-enhetsbygge, IPA-paketering och artifact-uppladdning.
+- Artifact-ID `15031154900`, namn `Antikspanaren-unsigned-IPA`, storlek 761 462 byte. Nedladdad ZIP verifierad lokalt; SHA-256 `91289ae37e7c899092957c7b7b93ea5b8d75ea16030b674ab4495c5e02896d51` matchar GitHubs digest.
+- ZIP innehåller `Antikspanaren-unsigned.ipa`; IPA innehåller `Payload/Antikspanaren.app`. Info.plist verifierad: bundle ID `se.antikspanaren.app`, version `0.1.0`, build `1`, minimum iOS `17.0`, enhetsfamilj `[1, 2]`, kamerabeskrivning finns. Körbar fil är Mach-O 64-bit arm64.
+- Detta är bygg- och arkivverifiering, inte signerings-, installations- eller runtime-verifiering. IPA är osignerad.
+- Den fullständiga kameraknappskopplingen i commit `2569d8d` är därmed byggverifierad. Kamera och PhotosPicker måste fortfarande testas fysiskt.
+- PR #2 är draft/open, ej mergad. `main` är oförändrad på `8cde3cd6072f4c318d31aeb8ff86f68bd1d91ad9`.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / 2569d8d | CI #135, nedladdad IPA, SHA-256 och Info.plist/Mach-O kontrollerade | Alla byggsteg godkända; arkiv verifierat; osignerad IPA |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade slutlig CI #135 och verifierad IPA för exakt feature-head | Dokumentation uppdaterad |
