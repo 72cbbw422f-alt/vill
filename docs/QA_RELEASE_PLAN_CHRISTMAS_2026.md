@@ -139,3 +139,21 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 - PR #1 hålls öppen tills #2 har verifierats; därefter kan #1 stängas som ersatt, utan merge.
 
 - Ytterligare kodgranskning av startsidan upptäckte att ett läsfel i lokal samlingsdata annars kunde presenteras som en tom samling. Startsidan visar nu samma skrivskyddade återställningsmeddelande som samlingsvyn när `CollectionStore.loadError` finns. Commit `a20df1469613dbe3dd0452832427a6e50d14a8b7`; CI-körning #132 för denna senaste commit `a20df1469613dbe3dd0452832427a6e50d14a8b7` är köad. Även körning #131 för föregående commit är köad; slutligt resultat inväntas.
+
+
+## Uppdatering 2026-11-25 – slutligt CI-resultat för PR #2
+- CI-körning #132 för exakt head-commit a20df1469613dbe3dd0452832427a6e50d14a8b7 avslutades med success.
+- Samtliga byggsteg passerade: checkout, Xcode-val, generering av appikon, simulatorbygge, osignerat iOS-enhetsbygge, IPA-paketering och uppladdning av artifact.
+- Artifact: Antikspanaren-unsigned-IPA, 757 917 byte (cirka 740 KiB), SHA-256 9c6b3f0d75d242818790204eb3cfa8aae026069e2bbf12caf3b8bab305eadf62.
+- Artifact-ID: 15003968137. GitHub anger att artifacten upphör 2026-12-09 08:27 UTC. Den är osignerad; innehållsstruktur, signering och fysisk installation är ännu inte verifierade.
+- PR #2 är fortsatt öppen och draft. main står kvar på 8cde3cd6072f4c318d31aeb8ff86f68bd1d91ad9; ingen merge har utförts.
+- PR #2 innehåller två kodfiler: Features/Collection/AntiqueDetailView.swift och Features/Home/HomeView.swift.
+- Kodgranskning bekräftar att MainTabView äger och injicerar samma CollectionStore som används av startsidan och samlingsvyn. Lagringen är lokal JSON med separat bildmapp. Vid JSON-läsfel lämnas originalfilen orörd och skrivningar blockeras.
+- Körning #131 avser föregående commit och är inte den auktoritativa verifieringen av PR:ens senaste head. #132 är den gröna körningen för aktuell commit.
+- Nästa steg: granska och verifiera IPA-arkivet, uppdatera PR-beskrivningen vid behov och genomföra fysisk iPhone-QA när signerad installation finns tillgänglig. PR #1 är överlappande och ska inte mergas separat.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / a20df14 | CI #132: simulator, osignerat iOS-bygge, IPA-paketering och artifact-uppladdning | Alla steg godkända; osignerad IPA 757 917 byte; fysisk installation ej verifierad |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade #132, artifact-ID, SHA-256, PR- och main-status samt kodgranskning av CollectionStore-injektion och återställningsskydd | Dokumentation uppdaterad |
