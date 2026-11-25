@@ -199,3 +199,18 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 |---|---|---|---|
 | 2026-11-25 | feature/home-collection-dashboard / eb349b8 | CI #133 och nedladdad IPA kontrollerad; SHA-256 och Info.plist verifierade | CI och arkivkontroll godkända; IPA osignerad; fysisk QA återstår |
 | 2026-11-25 | qa/christmas-release-readiness | Uppdaterade QA-planen med CI #133, artifact-ID/digest och kodgranskning av lokal lagring | Dokumentation uppdaterad |
+
+
+## Uppdatering 2026-11-25 – kamera och bildväljare, konkurrerande bildladdning
+- Kodgranskning identifierade en möjlig kapplöpning: om en bild från PhotosPicker fortfarande laddades när användaren öppnade kameran kunde den äldre asynkrona laddningen slutföras efter kamerafotot och skriva över den nytagna bilden.
+- Fix på `feature/home-collection-dashboard`, commit `8b29fd05de00356247d1a40677e4a4a2927de293`, fil `Features/Scanner/ScannerView.swift`.
+- När kameran öppnas invalideras nu pågående PhotosPicker-laddning via generations-ID. Valet nollställs, laddningsindikatorn stoppas och gamla analysresultat rensas.
+- Nollställning av PhotosPicker-val hanteras separat så att den inte raderar en bild som kameran redan har levererat.
+- Ändringen är kodgranskad men ännu inte byggverifierad. En ny PR-CI-körning för commit `8b29fd05de00356247d1a40677e4a4a2927de293` inväntas. Inga tester på fysisk enhet är utförda.
+- PR #2 är fortsatt draft/open och inte mergad. `main` är oförändrad.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / 8b29fd0 | Invalidera pågående bildläsning från PhotosPicker när kameran öppnas; förhindra att gammal asynkron bild ersätter ny kamerabild | Kodändring incheckad; CI inväntas; fysisk QA ej utförd |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade hittad kapplöpning, lösning och kvarvarande verifiering | Dokumentation uppdaterad |
