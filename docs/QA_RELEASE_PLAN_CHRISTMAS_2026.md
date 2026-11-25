@@ -165,3 +165,18 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 - Info.plist verifierad: bundle identifier se.antikspanaren.app, version 0.1.0 (build 1), MinimumOSVersion 17.0, iPhone/iPad-enhetsfamilj [1, 2], LSRequiresIPhoneOS true.
 - Appens binär identifieras som Mach-O 64-bit arm64.
 - Detta verifierar arkivets integritet och grundläggande IPA-struktur, inte kodsignering, installation eller körning. Ingen fysisk iPhone har testats.
+
+
+## Uppdatering 2026-11-25 – scanner och bevarande av OCR-märkningar
+- Kodgranskning av scannerflödet visade att den separata råa OCR-avläsningen för stämplar och sifferkoder visades i analysrapporten men inte följde med när föremålet sparades.
+- På feature/home-collection-dashboard har SaveAntiqueSheet nu fått rawMarkingText som indata. Vanlig OCR och rå märkningstext sparas som separata, tydligt märkta anteckningsavsnitt; rå avläsning utelämnas om den är identisk med vanlig OCR för att undvika dubbletter.
+- Sparaformuläret visar nu samlingens återställnings-/skrivskyddsstatus och blockerar spara-knappen när CollectionStore.loadError finns. Save-funktionen har även ett separat skydd innan add anropas.
+- Berörd fil: Features/Scanner/ScannerView.swift. Commit eb349b8477196df5b980d805dce888971718cb55.
+- PR #2 uppdaterad med ändringsbeskrivning och tydlig valideringsstatus. CI-körning #133 för exakt commit eb349b8477196df5b980d805dce888971718cb55 startad och pågår; inget byggresultat är ännu fastställt.
+- Ingen fysisk testning av kamera, PhotosPicker, OCR eller sparande/återöppning är genomförd. Ingen merge till main.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / eb349b8 | Scanner: spara både vanlig OCR och separat rå märkningstext; blockera sparande i recovery-läge | Kodändring incheckad; CI #133 pågår; fysisk QA återstår |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade scannergranskning, ändring, berörd fil och väntande CI | Dokumentation uppdaterad |
