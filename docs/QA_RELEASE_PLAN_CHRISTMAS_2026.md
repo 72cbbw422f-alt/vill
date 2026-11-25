@@ -288,3 +288,6 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 | 2026-11-25 | feature/home-collection-dashboard / 2012831 | CI #136 och nedladdad IPA kontrollerad mot GitHub digest; Info.plist och arm64-binär verifierade | Alla CI-steg godkända; IPA osignerad; fysisk QA återstår |
 | 2026-11-25 | feature/home-collection-dashboard / 2403757 | Förhindrade att bildimport skriver över osparade metadata i detaljvyn | Kodändring incheckad; ny CI inväntas |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade CI #136, artifact-integritet och ny dataförlustskorrigering | Dokumentation uppdaterad |
+
+- CI-körning #137 (run ID `45637278612`) har startat för den nya korrigeringscommiten `240375792ee0cb363c695c5bc106b343cc7e312d`. Vid dokumentationstillfället har setup, checkout och Xcode-val passerat; appikongenerering pågår och simulator-/enhetsbygge samt IPA-paketering väntar.
+- Workflow-filen `.github/workflows/ios-build.yml` innehåller endast kompilering och IPA-paketering/uppladdning; den kör inga XCTest- eller UI-test. Projektfilen visar ett enda app-target och inget separat testtarget. Därför ska CI-resultatet beskrivas som byggverifiering, inte automatiserad funktionstestning.
