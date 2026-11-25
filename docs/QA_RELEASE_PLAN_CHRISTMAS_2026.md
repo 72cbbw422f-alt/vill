@@ -96,6 +96,18 @@ Ingen källa får markeras som fungerande förrän en verklig, aktuell listning 
 - [ ] Ingen förlust av lokala data.
 - [ ] Ingen oavsiktlig nätverks- eller batteribelastning.
 
+
+## Uppdatering 2026-11-25 – byggfel och korrigering
+- Omkörning av main-körning #127 (commit `8cde3cd`) avslutades med failure.
+- Appikongenerering lyckades. Simulatorbygget föll i `Features/Collection/AntiqueDetailView.swift:792` med Swift-kompilatorfelet "unable to type-check this expression in reasonable time".
+- Orsaken lokaliserades till sammansättningen av prisreferensens PDF-detaljer.
+- En avgränsad korrigering har gjorts på `fix/pdf-evidence-compiler-complexity`, commit `73922b37077cf735ec1088211d8fdcbf6b87a9d7`.
+- Ändringen ersätter den komplexa array-/optional-kedjan med en explicit `[String]` och stegvisa tillägg. Samma etiketter och innehåll behålls.
+- Draft PR: https://github.com/72cbbw422f-alt/vill/pull/1
+- CI-körning #128 för PR-commiten startades och är under körning vid dokumentationstillfället. Ingen merge till `main` har gjorts.
+- Berörd kodfil: `Features/Collection/AntiqueDetailView.swift`.
+- Ändringen är inte verifierad förrän simulatorbygge, enhetsbygge och IPA-paketering i CI har godkänts.
+
 ## Releasebeslut
 Release får godkännas först när CI och IPA-grindarna är gröna, installation är verifierad på fysisk iPhone och alla funktioner som marknadsförs som fungerande har dokumenterade testresultat. Externa källor som inte kan verifieras ska uttryckligen anges som ej tillgängliga eller ej färdiga.
 
