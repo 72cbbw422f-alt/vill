@@ -264,3 +264,8 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 |---|---|---|---|
 | 2026-11-25 | feature/home-collection-dashboard / 2012831 | Visa antal misslyckade extrabildsimporter och första felorsak i stället för att ignorera fel tyst | Kod incheckad; ny CI inväntas; fysisk QA återstår |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade importfelhantering och tydlig gräns mellan föregående CI och senaste commit | Dokumentation uppdaterad |
+
+
+### CI-spårning för importfelhanteringen
+- Ny PR-CI är registrerad som körning #136, run ID `45636456825`, för exakt commit `2012831ab4d578cf1f3ffc4cda3d18eb2d201dec`.
+- Senaste kontroll: status `queued`; inget byggresultat finns ännu. [CI #136](https://github.com/72cbbw422f-alt/vill/actions/runs/45636456825).
