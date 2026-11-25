@@ -177,7 +177,9 @@ final class CollectionStore: ObservableObject {
     }
 
     func update(_ updated: SavedAntique) throws {
-        guard let index = items.firstIndex(where: { $0.id == updated.id }) else { return }
+        guard let index = items.firstIndex(where: { $0.id == updated.id }) else {
+            throw StoreError.itemNotFound
+        }
         let previous = items[index]
         // Image references are managed only by add/remove image operations.
         // A metadata edit must not silently detach files or attach arbitrary paths.
@@ -191,7 +193,9 @@ final class CollectionStore: ObservableObject {
     }
 
     func addImage(_ image: UIImage, to itemID: UUID) throws {
-        guard let index = items.firstIndex(where: { $0.id == itemID }) else { return }
+        guard let index = items.firstIndex(where: { $0.id == itemID }) else {
+            throw StoreError.itemNotFound
+        }
         guard let data = image.jpegData(compressionQuality: 0.88) else { throw StoreError.imageEncodingFailed }
         let filename = UUID().uuidString + ".jpg"
         let url = try imagesFolder().appendingPathComponent(filename)
@@ -207,8 +211,12 @@ final class CollectionStore: ObservableObject {
     }
 
     func removeAdditionalImage(_ filename: String, from itemID: UUID) throws {
-        guard let index = items.firstIndex(where: { $0.id == itemID }),
-              items[index].additionalImageFileNames.contains(filename) else { return }
+        guard let index = items.firstIndex(where: { $0.id == itemID }) else {
+            throw StoreError.itemNotFound
+        }
+        guard items[index].additionalImageFileNames.contains(filename) else {
+            throw StoreError.imageNotFound
+        }
         let previous = items[index]
         items[index].additionalImageFileNames.removeAll { $0 == filename }
         do {
@@ -221,7 +229,9 @@ final class CollectionStore: ObservableObject {
     }
 
     func delete(_ item: SavedAntique) throws {
-        guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
+        guard let index = items.firstIndex(where: { $0.id == item.id }) else {
+            throw StoreError.itemNotFound
+        }
         let removed = items.remove(at: index)
         do {
             try persist()
@@ -300,6 +310,8 @@ final class CollectionStore: ObservableObject {
         case imageEncodingFailed
         case imageReferencesCannotBeChanged
         case recoveryRequired
+        case itemNotFound
+        case imageNotFound
         var errorDescription: String? {
             switch self {
             case .imageEncodingFailed:
@@ -308,6 +320,10 @@ final class CollectionStore: ObservableObject {
                 return "Bildreferenser kan bara ändras genom att lägga till eller ta bort bilder i bildgalleriet."
             case .recoveryRequired:
                 return "Samlingen är skrivskyddad eftersom tidigare sparade data inte kunde läsas. Originalfilen har inte ändrats."
+            case .itemNotFound:
+                return "Föremålet finns inte längre i samlingen. Uppdatera vyn och försök igen."
+            case .imageNotFound:
+                return "Bilden finns inte längre bland föremålets extrabilder. Uppdatera vyn och försök igen."
             }
         }
     }

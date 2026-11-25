@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject private var collection: CollectionStore
     let onScan: () -> Void
 
     var body: some View {
@@ -72,6 +73,8 @@ struct HomeView: View {
                         }
                         .buttonStyle(.plain)
 
+                        collectionPreview
+
                         VStack(alignment: .leading, spacing: 14) {
                             sectionHeading("Så går det till", eyebrow: "TRE STEG")
                             BrassDivider()
@@ -120,6 +123,120 @@ struct HomeView: View {
                 .safeAreaPadding(.bottom, 82)
             }
             .toolbar(.hidden, for: .navigationBar)
+        }
+    }
+
+    private var recentItems: [SavedAntique] {
+        Array(collection.items.sorted { $0.createdAt > $1.createdAt }.prefix(2))
+    }
+
+    private var collectionPreview: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(alignment: .firstTextBaseline) {
+                sectionHeading("Ur din samling", eyebrow: "SENAST TILLAGDA")
+                Spacer()
+                Text("\(collection.items.count) SPARADE")
+                    .font(.system(size: 9, weight: .semibold, design: .serif))
+                    .tracking(1)
+                    .foregroundStyle(AntiqueTheme.brass)
+            }
+
+            if let loadError = collection.loadError {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 21, weight: .light))
+                        .foregroundStyle(AntiqueTheme.brass)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Samlingen kunde inte läsas.")
+                            .font(.system(size: 16, design: .serif))
+                            .foregroundStyle(AntiqueTheme.forest)
+                        Text(loadError)
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundStyle(AntiqueTheme.mutedInk)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AntiqueTheme.parchment.opacity(0.72))
+                .overlay(alignment: .leading) {
+                    Rectangle().fill(AntiqueTheme.brass).frame(width: 2)
+                }
+            } else if collection.items.isEmpty {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "books.vertical")
+                        .font(.system(size: 21, weight: .light))
+                        .foregroundStyle(AntiqueTheme.brass)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Din samling börjar här.")
+                            .font(.system(size: 16, design: .serif))
+                            .foregroundStyle(AntiqueTheme.forest)
+                        Text("Spara det första föremålet så visas det här, tillsammans med dina senaste dokumentationer.")
+                            .font(.system(size: 13, design: .serif))
+                            .foregroundStyle(AntiqueTheme.mutedInk)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AntiqueTheme.parchment.opacity(0.72))
+                .overlay(alignment: .leading) {
+                    Rectangle().fill(AntiqueTheme.brass).frame(width: 2)
+                }
+            } else {
+                ForEach(recentItems) { item in
+                    NavigationLink {
+                        AntiqueDetailView(item: item)
+                    } label: {
+                        HStack(spacing: 13) {
+                            Group {
+                                if let savedImage = collection.image(for: item) {
+                                    Image(uiImage: savedImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    ZStack {
+                                        AntiqueTheme.parchment
+                                        Image(systemName: "photo")
+                                            .foregroundStyle(AntiqueTheme.brass)
+                                    }
+                                }
+                            }
+                            .frame(width: 72, height: 76)
+                            .clipped()
+                            .overlay(Rectangle().stroke(AntiqueTheme.brass.opacity(0.5), lineWidth: 1))
+
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(item.title.isEmpty ? "Namnlöst föremål" : item.title)
+                                    .font(AntiqueTheme.title(19))
+                                    .foregroundStyle(AntiqueTheme.forest)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
+                                if !item.maker.isEmpty {
+                                    Text(item.maker)
+                                        .font(.system(size: 12, design: .serif))
+                                        .foregroundStyle(AntiqueTheme.walnut)
+                                        .lineLimit(1)
+                                }
+                                Text("\(item.allImageFileNames.count) bilder · \(item.evidence.count) prisreferenser")
+                                    .font(.system(size: 10, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.mutedInk)
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(AntiqueTheme.brass)
+                        }
+                        .padding(10)
+                        .background(AntiqueTheme.parchment.opacity(0.72))
+                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(AntiqueTheme.brass.opacity(0.35), lineWidth: 1))
+                        .contentShape(Rectangle())
+                        .accessibilityElement(children: .combine)
+                        .accessibilityHint("Öppnar föremålets dokumentation")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 

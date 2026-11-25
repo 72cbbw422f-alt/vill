@@ -87,7 +87,7 @@ struct ScannerView: View {
                         VStack(spacing: 12) {
                             if UIImagePickerController.isSourceTypeAvailable(.camera) {
                                 Button {
-                                    showingCamera = true
+                                    openCamera()
                                 } label: {
                                     Label("Ta ett foto", systemImage: "camera")
                                         .font(.system(size: 16, weight: .medium, design: .serif))
@@ -119,6 +119,14 @@ struct ScannerView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
                             .onChange(of: selectedPhoto) { _, item in
+                                // Clearing the picker selection is also used when the
+                                // camera is opened. It must not clear a camera image
+                                // that may already have been captured.
+                                guard let item else {
+                                    isLoadingPhoto = false
+                                    return
+                                }
+
                                 // Clear the previous photo immediately. If loading the
                                 // new selection fails, the old object must not remain
                                 // on screen and be mistaken for the newly selected one.
@@ -127,10 +135,6 @@ struct ScannerView: View {
                                 photoLoadError = nil
                                 image = nil
                                 resetScanResults()
-                                guard let item else {
-                                    isLoadingPhoto = false
-                                    return
-                                }
                                 isLoadingPhoto = true
                                 Task {
                                     do {
@@ -274,7 +278,7 @@ struct ScannerView: View {
             }
             .sheet(isPresented: $showingSaveForm) {
                 if let image {
-                    SaveAntiqueSheet(image: image, recognizedText: recognizedText)
+                    SaveAntiqueSheet(image: image, recognizedText: recognizedText, rawMarkingText: rawMarkingText)
                         .environmentObject(collection)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
@@ -283,6 +287,18 @@ struct ScannerView: View {
         }
     }
 
+
+    /// Open the camera without allowing an in-flight PhotosPicker load
+    /// to replace the newly captured image when its asynchronous read finishes.
+    private func openCamera() {
+        photoLoadGeneration = UUID()
+        selectedPhoto = nil
+        isLoadingPhoto = false
+        photoLoadError = nil
+        image = nil
+        resetScanResults()
+        showingCamera = true
+    }
 
     /// Clear every result tied to the previous photo so the next scan
     /// cannot display stale museum matches or collection comparisons.
@@ -1132,6 +1148,7 @@ private struct SaveAntiqueSheet: View {
     @Environment(\.dismiss) private var dismiss
     let image: UIImage
     let recognizedText: String
+    let rawMarkingText: String
 
     @State private var title = ""
     @State private var maker = ""
@@ -1188,6 +1205,19 @@ private struct SaveAntiqueSheet: View {
                                 .font(.system(size: 12, design: .serif))
                                 .foregroundStyle(AntiqueTheme.mutedInk)
                         }
+                        if let loadError = collection.loadError {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Label("Samlingen är skrivskyddad", systemImage: "lock.doc")
+                                    .font(.system(size: 13, weight: .semibold, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.walnut)
+                                Text(loadError)
+                                    .font(.system(size: 12, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.mutedInk)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(AntiqueTheme.parchment)
+                        }
                         if let errorMessage {
                             Text(errorMessage).font(.system(size: 13, design: .serif)).foregroundStyle(.red)
                         }
@@ -1200,8 +1230,8 @@ private struct SaveAntiqueSheet: View {
                                 .background(AntiqueTheme.forest)
                                 .clipShape(RoundedRectangle(cornerRadius: 5))
                         }
-                        .disabled(!purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                  && AntiquePriceInput.normalized(purchasePrice) == nil)
+                        .disabled(collection.loadError != nil || (!purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                  && AntiquePriceInput.normalized(purchasePrice) == nil))
                     }
                     .padding(22)
                 }
@@ -1227,14 +1257,28 @@ private struct SaveAntiqueSheet: View {
     }
 
     private func save() {
-        let cleanNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
-        let combinedNotes: String
-        if recognizedText.isEmpty {
-            combinedNotes = cleanNotes
-        } else {
-            let extracted = "Text avläst från bilden (kontrollera mot originalet):\n\(recognizedText)"
-            combinedNotes = cleanNotes.isEmpty ? extracted : cleanNotes + "\n\n" + extracted
+        guard collection.loadError == nil else {
+            errorMessage = "Samlingen är skrivskyddad. Återställ den sparade datan innan du försöker lägga till föremål."
+            return
         }
+
+        let cleanNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        var noteSections: [String] = []
+        if !cleanNotes.isEmpty {
+            noteSections.append(cleanNotes)
+        }
+
+        let cleanRecognizedText = recognizedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !cleanRecognizedText.isEmpty {
+            noteSections.append("Text avläst från bilden (kontrollera mot originalet):\n\(cleanRecognizedText)")
+        }
+
+        let cleanRawMarkingText = rawMarkingText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !cleanRawMarkingText.isEmpty && cleanRawMarkingText != cleanRecognizedText {
+            noteSections.append("Rå avläsning av märkningar utan språklig rättning (kontrollera mot originalet):\n\(cleanRawMarkingText)")
+        }
+
+        let combinedNotes = noteSections.joined(separator: "\n\n")
 
         do {
             let normalizedPurchasePrice = purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

@@ -137,30 +137,56 @@ struct AntiqueDetailView: View {
 
     @MainActor
     private func importSelectedImages(_ photos: [PhotosPickerItem], generation: UUID) async {
+        var failedImports = 0
+        var firstFailure: String?
+
         for photo in photos {
             guard generation == imageImportGeneration else { return }
-            guard let data = try? await photo.loadTransferable(type: Data.self),
-                  generation == imageImportGeneration,
-                  let image = UIImage(data: data) else { continue }
+
             do {
-                try collection.addImage(image, to: item.id)
-                refreshItemFromCollection()
+                guard let data = try await photo.loadTransferable(type: Data.self),
+                      let image = UIImage(data: data) else {
+                    failedImports += 1
+                    firstFailure = firstFailure ?? "En vald fil innehöll ingen läsbar bild."
+                    continue
+                }
+                guard generation == imageImportGeneration else { return }
+
+                do {
+                    try collection.addImage(image, to: item.id)
+                    refreshImageReferencesFromCollection()
+                } catch {
+                    failedImports += 1
+                    firstFailure = firstFailure ?? error.localizedDescription
+                }
             } catch {
-                message = error.localizedDescription
+                failedImports += 1
+                firstFailure = firstFailure ?? error.localizedDescription
             }
         }
+
         // An older import must not clear a newer selection in the picker.
         if generation == imageImportGeneration {
             selectedImages = []
+            if failedImports == photos.count, failedImports > 0 {
+                message = "Ingen av de valda bilderna kunde läggas till. \(firstFailure ?? "Kontrollera bildfilerna och försök igen.")"
+            } else if failedImports > 0 {
+                message = "\(failedImports) av \(photos.count) bilder kunde inte läggas till. \(firstFailure ?? "Kontrollera bildfilerna.")"
+            } else if !photos.isEmpty {
+                message = photos.count == 1 ? "Bilden har lagts till." : "\(photos.count) bilder har lagts till."
+            }
         }
     }
 
-    private func refreshItemFromCollection() {
+    private func refreshImageReferencesFromCollection() {
+        // Keep unsaved metadata edits in the form. Adding an image changes only
+        // the persisted image references, so do not replace the entire draft item.
         let currentID = item.id
         if let refreshedItem = collection.items.first(where: { candidate in
             candidate.id == currentID
         }) {
-            item = refreshedItem
+            item.imageFileName = refreshedItem.imageFileName
+            item.additionalImageFileNames = refreshedItem.additionalImageFileNames
         }
     }
 
@@ -554,9 +580,7 @@ struct AntiqueDetailView: View {
     private func removePhoto(_ filename: String) {
         do {
             try collection.removeAdditionalImage(filename, from: item.id)
-            if let refreshed = collection.items.first(where: { $0.id == item.id }) {
-                item = refreshed
-            }
+            refreshImageReferencesFromCollection()
             message = "Bilden har tagits bort."
         } catch {
             message = error.localizedDescription
@@ -788,19 +812,36 @@ private enum AntiqueCatalogPDF {
             ("ANTECKNINGAR", item.notes)
         ]
         for evidence in item.evidence {
-            let date = evidence.date.map { $0.formatted(date: .numeric, time: .omitted) } ?? "Datum saknas"
-            let details = [
-                "Källa: " + evidence.sourceName,
-                "Prisuppgift: " + evidence.amount + " kr",
-                "Datum: " + date,
-                evidence.itemCondition.map { "Skick: " + $0 } ?? "",
-                evidence.modelDetails.map { "Modell / utförande: " + $0 } ?? "",
-                evidence.comparabilityNotes.map { "Jämförbarhet: " + $0 } ?? "",
-                evidence.url.isEmpty ? "" : "Källänk: " + evidence.url,
-                evidence.notes.isEmpty ? "" : "Övriga anteckningar: " + evidence.notes
+            let dateText: String
+            if let evidenceDate = evidence.date {
+                dateText = evidenceDate.formatted(date: .numeric, time: .omitted)
+            } else {
+                dateText = "Datum saknas"
+            }
+
+            var detailLines: [String] = [
+                "Källa: \(evidence.sourceName)",
+                "Prisuppgift: \(evidence.amount) kr",
+                "Datum: \(dateText)"
             ]
-                .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                .joined(separator: "\n")
+
+            if let condition = evidence.itemCondition, !condition.isEmpty {
+                detailLines.append("Skick: \(condition)")
+            }
+            if let modelDetails = evidence.modelDetails, !modelDetails.isEmpty {
+                detailLines.append("Modell / utförande: \(modelDetails)")
+            }
+            if let comparabilityNotes = evidence.comparabilityNotes, !comparabilityNotes.isEmpty {
+                detailLines.append("Jämförbarhet: \(comparabilityNotes)")
+            }
+            if !evidence.url.isEmpty {
+                detailLines.append("Källänk: \(evidence.url)")
+            }
+            if !evidence.notes.isEmpty {
+                detailLines.append("Övriga anteckningar: \(evidence.notes)")
+            }
+
+            let details = detailLines.joined(separator: "\n")
             sections.append((evidence.kind.title.uppercased(), details))
         }
         sections = sections.filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
