@@ -137,3 +137,5 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 - Startsidan sorterar nu de två senaste posterna efter `createdAt` och har förbättrade VoiceOver-hintar för öppning av föremål.
 - Ny CI #131 för commit `39e0a30267994a4ab3f9467e9cb38d98efc26b8e` är köad. Slutresultat inväntas.
 - PR #1 hålls öppen tills #2 har verifierats; därefter kan #1 stängas som ersatt, utan merge.
+
+- Ytterligare kodgranskning av startsidan upptäckte att ett läsfel i lokal samlingsdata annars kunde presenteras som en tom samling. Startsidan visar nu samma skrivskyddade återställningsmeddelande som samlingsvyn när `CollectionStore.loadError` finns. Commit `a20df1469613dbe3dd0452832427a6e50d14a8b7`; CI-status för denna senaste commit inväntas.
