@@ -274,7 +274,7 @@ struct ScannerView: View {
             }
             .sheet(isPresented: $showingSaveForm) {
                 if let image {
-                    SaveAntiqueSheet(image: image, recognizedText: recognizedText)
+                    SaveAntiqueSheet(image: image, recognizedText: recognizedText, rawMarkingText: rawMarkingText)
                         .environmentObject(collection)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
@@ -1132,6 +1132,7 @@ private struct SaveAntiqueSheet: View {
     @Environment(\.dismiss) private var dismiss
     let image: UIImage
     let recognizedText: String
+    let rawMarkingText: String
 
     @State private var title = ""
     @State private var maker = ""
@@ -1188,6 +1189,19 @@ private struct SaveAntiqueSheet: View {
                                 .font(.system(size: 12, design: .serif))
                                 .foregroundStyle(AntiqueTheme.mutedInk)
                         }
+                        if let loadError = collection.loadError {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Label("Samlingen är skrivskyddad", systemImage: "lock.doc")
+                                    .font(.system(size: 13, weight: .semibold, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.walnut)
+                                Text(loadError)
+                                    .font(.system(size: 12, design: .serif))
+                                    .foregroundStyle(AntiqueTheme.mutedInk)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(AntiqueTheme.parchment)
+                        }
                         if let errorMessage {
                             Text(errorMessage).font(.system(size: 13, design: .serif)).foregroundStyle(.red)
                         }
@@ -1200,8 +1214,8 @@ private struct SaveAntiqueSheet: View {
                                 .background(AntiqueTheme.forest)
                                 .clipShape(RoundedRectangle(cornerRadius: 5))
                         }
-                        .disabled(!purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                  && AntiquePriceInput.normalized(purchasePrice) == nil)
+                        .disabled(collection.loadError != nil || (!purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                  && AntiquePriceInput.normalized(purchasePrice) == nil))
                     }
                     .padding(22)
                 }
@@ -1227,14 +1241,28 @@ private struct SaveAntiqueSheet: View {
     }
 
     private func save() {
-        let cleanNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
-        let combinedNotes: String
-        if recognizedText.isEmpty {
-            combinedNotes = cleanNotes
-        } else {
-            let extracted = "Text avläst från bilden (kontrollera mot originalet):\n\(recognizedText)"
-            combinedNotes = cleanNotes.isEmpty ? extracted : cleanNotes + "\n\n" + extracted
+        guard collection.loadError == nil else {
+            errorMessage = "Samlingen är skrivskyddad. Återställ den sparade datan innan du försöker lägga till föremål."
+            return
         }
+
+        let cleanNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        var noteSections: [String] = []
+        if !cleanNotes.isEmpty {
+            noteSections.append(cleanNotes)
+        }
+
+        let cleanRecognizedText = recognizedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !cleanRecognizedText.isEmpty {
+            noteSections.append("Text avläst från bilden (kontrollera mot originalet):\n\(cleanRecognizedText)")
+        }
+
+        let cleanRawMarkingText = rawMarkingText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !cleanRawMarkingText.isEmpty && cleanRawMarkingText != cleanRecognizedText {
+            noteSections.append("Rå avläsning av märkningar utan språklig rättning (kontrollera mot originalet):\n\(cleanRawMarkingText)")
+        }
+
+        let combinedNotes = noteSections.joined(separator: "\n\n")
 
         do {
             let normalizedPurchasePrice = purchasePrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
