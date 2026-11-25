@@ -269,3 +269,22 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 ### CI-spårning för importfelhanteringen
 - Ny PR-CI är registrerad som körning #136, run ID `45636456825`, för exakt commit `2012831ab4d578cf1f3ffc4cda3d18eb2d201dec`.
 - Senaste kontroll: status `queued`; inget byggresultat finns ännu. [CI #136](https://github.com/72cbbw422f-alt/vill/actions/runs/45636456825).
+
+
+## Uppdatering 2026-11-25 – CI #136 och granskning av bildimport
+- CI-körning #136 (run ID 45636456825) avslutades med success för exakt commit `2012831ab4d578cf1f3ffc4cda3d18eb2d201dec` på `feature/home-collection-dashboard`.
+- Alla åtta relevanta steg passerade: Xcode-val, appikon, simulatorbygge, osignerat iOS-enhetsbygge, IPA-paketering och artifact-uppladdning (samt checkout/setup).
+- Artifact-ID `15034770036`, namn `Antikspanaren-unsigned-IPA`, storlek 762 469 byte. ZIP SHA-256 verifierad mot GitHub digest: `8d069b872b2939f0a0f5a4a19f88cd0efe6b1667d57754b3d652c1a5a05218a5`.
+- IPA innehåller `Payload/Antikspanaren.app`. Info.plist verifierad: bundle `se.antikspanaren.app`, version `0.1.0` (build `1`), MinimumOSVersion `17.0`, device families `[1, 2]`, kamerabeskrivning finns. Körbar fil är arm64 Mach-O.
+- Detta verifierar byggbarhet och IPA-struktur, inte signering, installation eller körning på fysisk iPhone.
+- Efter #136-granskningen hittades en möjlig dataförlust: bildimportens `refreshItemFromCollection()` ersatte hela redigeringsutkastet med den senast sparade posten och kunde därmed kasta bort osparade metadataändringar.
+- Korrigering gjord på `feature/home-collection-dashboard`, commit `240375792ee0cb363c695c5bc106b343cc7e312d`, fil `Features/Collection/AntiqueDetailView.swift`. Uppdateringsfunktionen heter nu `refreshImageReferencesFromCollection()` och kopierar endast `imageFileName` och `additionalImageFileNames`; övriga lokala fält lämnas orörda.
+- CI för den nya committen inväntas. Ändringen är ännu inte byggverifierad.
+- PR #2 är fortsatt öppen och draft. `main` står kvar på `8cde3cd6072f4c318d31aeb8ff86f68bd1d91ad9`; ingen merge.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / 2012831 | CI #136 och nedladdad IPA kontrollerad mot GitHub digest; Info.plist och arm64-binär verifierade | Alla CI-steg godkända; IPA osignerad; fysisk QA återstår |
+| 2026-11-25 | feature/home-collection-dashboard / 2403757 | Förhindrade att bildimport skriver över osparade metadata i detaljvyn | Kodändring incheckad; ny CI inväntas |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade CI #136, artifact-integritet och ny dataförlustskorrigering | Dokumentation uppdaterad |
