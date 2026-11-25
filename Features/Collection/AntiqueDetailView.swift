@@ -154,7 +154,7 @@ struct AntiqueDetailView: View {
 
                 do {
                     try collection.addImage(image, to: item.id)
-                    refreshItemFromCollection()
+                    refreshImageReferencesFromCollection()
                 } catch {
                     failedImports += 1
                     firstFailure = firstFailure ?? error.localizedDescription
@@ -178,12 +178,15 @@ struct AntiqueDetailView: View {
         }
     }
 
-    private func refreshItemFromCollection() {
+    private func refreshImageReferencesFromCollection() {
+        // Keep unsaved metadata edits in the form. Adding an image changes only
+        // the persisted image references, so do not replace the entire draft item.
         let currentID = item.id
         if let refreshedItem = collection.items.first(where: { candidate in
             candidate.id == currentID
         }) {
-            item = refreshedItem
+            item.imageFileName = refreshedItem.imageFileName
+            item.additionalImageFileNames = refreshedItem.additionalImageFileNames
         }
     }
 
