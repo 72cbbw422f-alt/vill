@@ -308,3 +308,18 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 | 2026-11-25 | feature/home-collection-dashboard / 2403757 | CI #137 samt ZIP-digest, IPA-struktur, Info.plist och arm64-binär verifierade | Bygg och arkiv godkända; osignerad; ingen fysisk QA |
 | 2026-11-25 | feature/home-collection-dashboard / c30101a | Bildborttagning uppdaterar endast bildreferenser så osparade redigeringar bevaras | Kodändring incheckad; CI inväntas |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade CI #137, IPA-kontroll och uppföljande buggfix | Dokumentation uppdaterad |
+
+
+## Uppdatering 2026-11-25 – utökad dataintegritetsgranskning
+- CI #137 är godkänd för commit `240375792ee0cb363c695c5bc106b343cc7e312d`. Artifact ZIP digest matchar GitHubs SHA-256. Den inre IPA-filen har packats upp; `Payload/Antikspanaren.app`, Info.plist-fält (bundle ID, version/build, minsta iOS, enhetsfamilj, kamera usage text) och arm64 Mach-O har verifierats. Signering/installation/fysisk körning är inte verifierade.
+- Commit `c30101a667400cd1b050d998d113dcc81f6dc06e` ändrar bildborttagning så att endast bildreferenser synkroniseras tillbaka till redigeringsutkastet. Därmed bevaras osparade metadata även efter borttagning av extrabild. CI #138 startad för denna commit.
+- Ytterligare kodgranskning fann tysta no-op-fall i `CollectionStore`: uppdatering, bildtillägg, bildborttagning och radering returnerade utan fel när målobjekt saknades; bildborttagning returnerade även tyst om bildreferensen saknades. Det kunde ge falskt positiv UI-bekräftelse.
+- Commit `e0cb157033721ee208e568bc8cf4f11e6cca937b`, fil `Models/CollectionStore.swift`, ersätter dessa tysta returvägar med lokaliserade `StoreError.itemNotFound` respektive `StoreError.imageNotFound`. Granskade anropsställen i `AntiqueDetailView.swift` använder `try` och fångar fel. Ny CI för denna senaste commit inväntas; ingen runtime-testning är gjord.
+- PR #2 är fortsatt öppen/draft; `main` oförändrad.
+
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / c30101a | Bildborttagning bevarar osparade metadata; CI #138 startad | Väntar på byggresultat |
+| 2026-11-25 | feature/home-collection-dashboard / e0cb157 | Store rapporterar saknade föremål/bilder som fel i stället för tyst no-op | Kodändring incheckad; CI för aktuell head inväntas |
+| 2026-11-25 | qa/christmas-release-readiness | Dokumenterade utökad dataintegritetsgranskning och status | Dokumentation uppdaterad |
