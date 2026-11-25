@@ -172,7 +172,7 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 - På feature/home-collection-dashboard har SaveAntiqueSheet nu fått rawMarkingText som indata. Vanlig OCR och rå märkningstext sparas som separata, tydligt märkta anteckningsavsnitt; rå avläsning utelämnas om den är identisk med vanlig OCR för att undvika dubbletter.
 - Sparaformuläret visar nu samlingens återställnings-/skrivskyddsstatus och blockerar spara-knappen när CollectionStore.loadError finns. Save-funktionen har även ett separat skydd innan add anropas.
 - Berörd fil: Features/Scanner/ScannerView.swift. Commit eb349b8477196df5b980d805dce888971718cb55.
-- PR #2 uppdaterad med ändringsbeskrivning och tydlig valideringsstatus. CI-körning #133 för exakt commit eb349b8477196df5b980d805dce888971718cb55 startad och pågår; inget byggresultat är ännu fastställt.
+- PR #2 uppdaterad med ändringsbeskrivning och tydlig valideringsstatus. CI-körning #133 för exakt commit eb349b8477196df5b980d805dce888971718cb55 avslutades med success 2026-11-25. Simulatorbygge, osignerat iOS-enhetsbygge, IPA-paketering och artifact-uppladdning passerade.
 - Ingen fysisk testning av kamera, PhotosPicker, OCR eller sparande/återöppning är genomförd. Ingen merge till main.
 
 ## Arbetslogg – tillägg
@@ -180,3 +180,22 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 |---|---|---|---|
 | 2026-11-25 | feature/home-collection-dashboard / eb349b8 | Scanner: spara både vanlig OCR och separat rå märkningstext; blockera sparande i recovery-läge | Kodändring incheckad; CI #133 pågår; fysisk QA återstår |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade scannergranskning, ändring, berörd fil och väntande CI | Dokumentation uppdaterad |
+
+
+## Uppdatering 2026-11-25 – CI #133 och IPA-verifiering för scannerändringen
+- CI-körning #133 (run ID 45615541731) avslutades med success för exakt head-commit eb349b8477196df5b980d805dce888971718cb55 på feature/home-collection-dashboard.
+- Samtliga steg i byggjobbet passerade: checkout, Xcode-val, appikongenerering, simulatorbygge, osignerat iOS-enhetsbygge, IPA-paketering och uppladdning.
+- Artifact-ID 15022545736, namn Antikspanaren-unsigned-IPA, storlek 761 145 byte. GitHub-artifactens SHA-256 är c85a072aa405534bfd943d2b4c54a3827e6110750fb0aa2025e6a11b9b8bf22a.
+- Artifact ZIP hämtades och kontrollerades lokalt. Lokal SHA-256 matchar GitHubs digest exakt. ZIP innehåller Antikspanaren-unsigned.ipa; IPA innehåller Payload/Antikspanaren.app och Info.plist.
+- Verifierade Info.plist-fält: bundle identifier se.antikspanaren.app, version 0.1.0, build 1, MinimumOSVersion 17.0, UIDeviceFamily [1, 2].
+- Arkivkontrollen verifierar inte kodsignering, installation eller körning. IPA är osignerad. Ingen fysisk iPhone-QA är utförd.
+- Kodgranskning av Models/CollectionStore.swift visar lokal JSON-persistens med atomisk skrivning, separata JPEG-filer och rollback av in-memory-post/bild vid misslyckad add-persistens. Filnamn kontrolleras mot katalogkomponent innan bild läses eller raderas. Vid JSON-läs-/decodefel lämnas originaldata orörd och skrivningar blockeras.
+- Scannerändringen i Features/Scanner/ScannerView.swift sparar nu både vanlig OCR och okorrigerad rå märkningstext som separata anteckningar med verifieringsvarning. Detta är byggverifierat, men måste fortfarande testas med verkliga foton och efter återstart.
+- PR #2 är fortsatt draft/open och inte mergad. main är oförändrad på 8cde3cd6072f4c318d31aeb8ff86f68bd1d91ad9.
+- Kvar: fysisk iPhone-testning av kamera, PhotosPicker, OCR, skapa/spara/återöppna, redigera/radera, flera bilder och PDF-export; därefter signering och installationskontroll.
+ 
+## Arbetslogg – tillägg
+| Datum | Gren/commit | Ändring/test | Resultat |
+|---|---|---|---|
+| 2026-11-25 | feature/home-collection-dashboard / eb349b8 | CI #133 och nedladdad IPA kontrollerad; SHA-256 och Info.plist verifierade | CI och arkivkontroll godkända; IPA osignerad; fysisk QA återstår |
+| 2026-11-25 | qa/christmas-release-readiness | Uppdaterade QA-planen med CI #133, artifact-ID/digest och kodgranskning av lokal lagring | Dokumentation uppdaterad |
