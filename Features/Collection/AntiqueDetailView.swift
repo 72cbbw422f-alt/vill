@@ -788,19 +788,36 @@ private enum AntiqueCatalogPDF {
             ("ANTECKNINGAR", item.notes)
         ]
         for evidence in item.evidence {
-            let date = evidence.date.map { $0.formatted(date: .numeric, time: .omitted) } ?? "Datum saknas"
-            let details = [
-                "Källa: " + evidence.sourceName,
-                "Prisuppgift: " + evidence.amount + " kr",
-                "Datum: " + date,
-                evidence.itemCondition.map { "Skick: " + $0 } ?? "",
-                evidence.modelDetails.map { "Modell / utförande: " + $0 } ?? "",
-                evidence.comparabilityNotes.map { "Jämförbarhet: " + $0 } ?? "",
-                evidence.url.isEmpty ? "" : "Källänk: " + evidence.url,
-                evidence.notes.isEmpty ? "" : "Övriga anteckningar: " + evidence.notes
+            let dateText: String
+            if let evidenceDate = evidence.date {
+                dateText = evidenceDate.formatted(date: .numeric, time: .omitted)
+            } else {
+                dateText = "Datum saknas"
+            }
+
+            var detailLines: [String] = [
+                "Källa: \(evidence.sourceName)",
+                "Prisuppgift: \(evidence.amount) kr",
+                "Datum: \(dateText)"
             ]
-                .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                .joined(separator: "\n")
+
+            if let condition = evidence.itemCondition, !condition.isEmpty {
+                detailLines.append("Skick: \(condition)")
+            }
+            if let modelDetails = evidence.modelDetails, !modelDetails.isEmpty {
+                detailLines.append("Modell / utförande: \(modelDetails)")
+            }
+            if let comparabilityNotes = evidence.comparabilityNotes, !comparabilityNotes.isEmpty {
+                detailLines.append("Jämförbarhet: \(comparabilityNotes)")
+            }
+            if !evidence.url.isEmpty {
+                detailLines.append("Källänk: \(evidence.url)")
+            }
+            if !evidence.notes.isEmpty {
+                detailLines.append("Övriga anteckningar: \(evidence.notes)")
+            }
+
+            let details = detailLines.joined(separator: "\n")
             sections.append((evidence.kind.title.uppercased(), details))
         }
         sections = sections.filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
