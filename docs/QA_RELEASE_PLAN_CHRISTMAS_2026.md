@@ -105,7 +105,7 @@ Ingen källa får markeras som fungerande förrän en verklig, aktuell listning 
 - En avgränsad korrigering har gjorts på `fix/pdf-evidence-compiler-complexity`, commit `73922b37077cf735ec1088211d8fdcbf6b87a9d7`.
 - Ändringen ersätter den komplexa array-/optional-kedjan med en explicit `[String]` och stegvisa tillägg. Samma etiketter och innehåll behålls.
 - Draft PR: https://github.com/72cbbw422f-alt/vill/pull/1
-- CI-körning #128 för PR-commiten avslutades med `success` 2026-11-25. Alla åtta steg passerade: checkout, Xcode-val, appikon, simulatorbygge, iOS-enhetsbygge, IPA-paketering och uppladdning.
+- CI-körning #128 för PR #1 avslutades med `success` 2026-11-25. Alla åtta steg passerade: checkout, Xcode-val, appikon, simulatorbygge, iOS-enhetsbygge, IPA-paketering och uppladdning.
 - Artifact `Antikspanaren-unsigned-IPA` skapades (ca 727 kB; SHA-256 `acc77bdf35b819951dac935ea47f64b9bb10338256cc6fb125cd95692408880a`). Artifact är osignerad och har inte installerats på fysisk iPhone.
 - PR #1 är fortsatt draft och ej mergad. Ingen ändring har gjorts på `main`.
 - Berörd kodfil: `Features/Collection/AntiqueDetailView.swift`.
@@ -129,3 +129,11 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 | 2026-11-25 | `qa/christmas-release-readiness` / bas `8cde3cd` | Skapade QA- och releaseplan; begärde omkörning av tidigare avbruten CI-körning #127 | Dokumentation skapad |
 | 2026-11-25 | `fix/pdf-evidence-compiler-complexity` / `73922b3` | Förenklade PDF-detaljsträngar; CI #128 | Simulator, iOS-enhetsbygge och osignerad IPA godkända; PR #1 ej mergad |
 | 2026-11-25 | `feature/home-collection-dashboard` / `d023e53` | Startsidan visar senaste sparade föremål; PR #2 | Ny CI efter basändring inväntas; fysisk QA ej utförd |
+
+
+## Uppdatering 2026-11-25 – CI-felsökning och konsoliderad PR
+- Körning #129 och #130 för PR #2 misslyckades eftersom de byggde merge-commit mot gamla `main`; logg bekräftar samma tidigare fel i `AntiqueDetailView.swift:792`, inte ett nytt fel i startsidan.
+- PR #2 har gjorts fristående mot `main` och innehåller den verifierade PDF-kompilatorfixen tillsammans med startsidans samlingsöversikt.
+- Startsidan sorterar nu de två senaste posterna efter `createdAt` och har förbättrade VoiceOver-hintar för öppning av föremål.
+- Ny CI #131 för commit `39e0a30267994a4ab3f9467e9cb38d98efc26b8e` är köad. Slutresultat inväntas.
+- PR #1 hålls öppen tills #2 har verifierats; därefter kan #1 stängas som ersatt, utan merge.
