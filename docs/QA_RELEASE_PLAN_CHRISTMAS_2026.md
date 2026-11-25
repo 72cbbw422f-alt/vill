@@ -157,3 +157,11 @@ Release får godkännas först när CI och IPA-grindarna är gröna, installatio
 |---|---|---|---|
 | 2026-11-25 | feature/home-collection-dashboard / a20df14 | CI #132: simulator, osignerat iOS-bygge, IPA-paketering och artifact-uppladdning | Alla steg godkända; osignerad IPA 757 917 byte; fysisk installation ej verifierad |
 | 2026-11-25 | qa/christmas-release-readiness | Dokumenterade #132, artifact-ID, SHA-256, PR- och main-status samt kodgranskning av CollectionStore-injektion och återställningsskydd | Dokumentation uppdaterad |
+
+
+## Uppdatering 2026-11-25 – kontroll av nedladdad IPA
+- Artifact ZIP laddades ned från GitHub Actions och SHA-256 verifierades lokalt: 9c6b3f0d75d242818790204eb3cfa8aae026069e2bbf12caf3b8bab305eadf62 (matchar GitHub-artifactens digest).
+- ZIP-arkivet innehåller Antikspanaren-unsigned.ipa. IPA-arkivet kunde öppnas och innehåller Payload/Antikspanaren.app samt appens körbara fil, Assets.car och Info.plist.
+- Info.plist verifierad: bundle identifier se.antikspanaren.app, version 0.1.0 (build 1), MinimumOSVersion 17.0, iPhone/iPad-enhetsfamilj [1, 2], LSRequiresIPhoneOS true.
+- Appens binär identifieras som Mach-O 64-bit arm64.
+- Detta verifierar arkivets integritet och grundläggande IPA-struktur, inte kodsignering, installation eller körning. Ingen fysisk iPhone har testats.
