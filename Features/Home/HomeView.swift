@@ -141,7 +141,28 @@ struct HomeView: View {
                     .foregroundStyle(AntiqueTheme.brass)
             }
 
-            if collection.items.isEmpty {
+            if let loadError = collection.loadError {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 21, weight: .light))
+                        .foregroundStyle(AntiqueTheme.brass)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Samlingen kunde inte läsas.")
+                            .font(.system(size: 16, design: .serif))
+                            .foregroundStyle(AntiqueTheme.forest)
+                        Text(loadError)
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundStyle(AntiqueTheme.mutedInk)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AntiqueTheme.parchment.opacity(0.72))
+                .overlay(alignment: .leading) {
+                    Rectangle().fill(AntiqueTheme.brass).frame(width: 2)
+                }
+            } else if collection.items.isEmpty {
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "books.vertical")
                         .font(.system(size: 21, weight: .light))
