@@ -137,21 +137,44 @@ struct AntiqueDetailView: View {
 
     @MainActor
     private func importSelectedImages(_ photos: [PhotosPickerItem], generation: UUID) async {
+        var failedImports = 0
+        var firstFailure: String?
+
         for photo in photos {
             guard generation == imageImportGeneration else { return }
-            guard let data = try? await photo.loadTransferable(type: Data.self),
-                  generation == imageImportGeneration,
-                  let image = UIImage(data: data) else { continue }
+
             do {
-                try collection.addImage(image, to: item.id)
-                refreshItemFromCollection()
+                guard let data = try await photo.loadTransferable(type: Data.self),
+                      let image = UIImage(data: data) else {
+                    failedImports += 1
+                    firstFailure = firstFailure ?? "En vald fil innehöll ingen läsbar bild."
+                    continue
+                }
+                guard generation == imageImportGeneration else { return }
+
+                do {
+                    try collection.addImage(image, to: item.id)
+                    refreshItemFromCollection()
+                } catch {
+                    failedImports += 1
+                    firstFailure = firstFailure ?? error.localizedDescription
+                }
             } catch {
-                message = error.localizedDescription
+                failedImports += 1
+                firstFailure = firstFailure ?? error.localizedDescription
             }
         }
+
         // An older import must not clear a newer selection in the picker.
         if generation == imageImportGeneration {
             selectedImages = []
+            if failedImports == photos.count, failedImports > 0 {
+                message = "Ingen av de valda bilderna kunde läggas till. \(firstFailure ?? "Kontrollera bildfilerna och försök igen.")"
+            } else if failedImports > 0 {
+                message = "\(failedImports) av \(photos.count) bilder kunde inte läggas till. \(firstFailure ?? "Kontrollera bildfilerna.")"
+            } else if !photos.isEmpty {
+                message = photos.count == 1 ? "Bilden har lagts till." : "\(photos.count) bilder har lagts till."
+            }
         }
     }
 
