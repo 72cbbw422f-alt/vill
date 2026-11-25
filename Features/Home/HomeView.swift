@@ -126,13 +126,12 @@ struct HomeView: View {
         }
     }
 
-
     private var collectionPreview: some View {
         VStack(alignment: .leading, spacing: 13) {
             HStack(alignment: .firstTextBaseline) {
                 sectionHeading("Ur din samling", eyebrow: "DINA FÖREMÅL")
                 Spacer()
-                Text("\(collection.items.count) \(collection.items.count == 1 ? "FÖREMÅL" : "FÖREMÅL")")
+                Text("\(collection.items.count) SPARADE")
                     .font(.system(size: 9, weight: .semibold, design: .serif))
                     .tracking(1)
                     .foregroundStyle(AntiqueTheme.brass)
