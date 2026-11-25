@@ -119,6 +119,14 @@ struct ScannerView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
                             .onChange(of: selectedPhoto) { _, item in
+                                // Clearing the picker selection is also used when the
+                                // camera is opened. It must not clear a camera image
+                                // that may already have been captured.
+                                guard let item else {
+                                    isLoadingPhoto = false
+                                    return
+                                }
+
                                 // Clear the previous photo immediately. If loading the
                                 // new selection fails, the old object must not remain
                                 // on screen and be mistaken for the newly selected one.
@@ -127,10 +135,6 @@ struct ScannerView: View {
                                 photoLoadError = nil
                                 image = nil
                                 resetScanResults()
-                                guard let item else {
-                                    isLoadingPhoto = false
-                                    return
-                                }
                                 isLoadingPhoto = true
                                 Task {
                                     do {
